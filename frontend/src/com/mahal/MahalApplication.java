@@ -16,9 +16,16 @@ public class MahalApplication extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            java.io.InputStream iconStream = getClass().getResourceAsStream("/resources/app_icon.png");
-            if (iconStream != null) {
-                primaryStage.getIcons().add(new javafx.scene.image.Image(iconStream));
+        try {
+            // Try different possible paths for the icon
+            String[] iconPaths = {"/resources/app_icon.png", "/app_icon.png", "/resources/images/mahal_logo.png"};
+            for (String path : iconPaths) {
+                java.io.InputStream is = getClass().getResourceAsStream(path);
+                if (is != null) {
+                    primaryStage.getIcons().add(new javafx.scene.image.Image(is));
+                    System.out.println("Loaded application icon from: " + path);
+                    break;
+                }
             }
         } catch (Exception e) {
             System.err.println("Could not load application icon: " + e.getMessage());
@@ -60,9 +67,12 @@ public class MahalApplication extends Application {
             System.out.println("Starting initial sync of all existing data to Supabase...");
             new Thread(() -> {
                 try {
-                    // Wait for backend to be ready
-                    com.mahal.service.ApiService.getInstance().waitForServer(30);
-                    SyncHelper.performInitialSync();
+                    // Wait for backend to be ready (increased timeout for portability)
+                    if (com.mahal.service.ApiService.getInstance().waitForServer(60)) {
+                        SyncHelper.performInitialSync();
+                    } else {
+                        System.err.println("Backend server did not respond within 60s. Initial sync skipped.");
+                    }
                 } catch (Exception e) {
                     System.err.println("Error during initial sync: " + e.getMessage());
                 }
@@ -85,8 +95,21 @@ public class MahalApplication extends Application {
         // Check subscription in background thread
         new Thread(() -> {
             try {
-                // Wait for backend to be ready
-                com.mahal.service.ApiService.getInstance().waitForServer(30);
+                // Wait for backend to be ready (increased timeout for portability)
+                if (!com.mahal.service.ApiService.getInstance().waitForServer(60)) {
+                    Platform.runLater(() -> {
+                        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                                javafx.scene.control.Alert.AlertType.ERROR);
+                        alert.setTitle("System Error");
+                        alert.setHeaderText("Backend Server Not Responding");
+                        alert.setContentText(
+                                "The application backend failed to start within 60 seconds. This might be due to a port conflict or missing configuration. Please check the logs or restart the app.");
+                        alert.showAndWait();
+                        showSubscriptionScreen(primaryStage); // Fallback
+                    });
+                    return;
+                }
+
                 SubscriptionService subscriptionService = SubscriptionService.getInstance();
                 SubscriptionService.SubscriptionStatus status = subscriptionService.checkSubscriptionStatus();
 

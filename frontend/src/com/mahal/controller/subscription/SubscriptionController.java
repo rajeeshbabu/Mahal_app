@@ -275,15 +275,16 @@ public class SubscriptionController {
                             (errorMessage.contains("Connection refused") ||
                                     errorMessage.contains("connect") ||
                                     errorMessage.contains("localhost:8080"))) {
-                        userFriendlyMessage = "Cannot connect to backend server.\n\n" +
-                                "Please ensure the Spring Boot backend is running:\n" +
-                                "1. Navigate to your backend directory\n" +
-                                "2. Run: mvn spring-boot:run\n" +
-                                "3. Wait for server to start on http://localhost:8080\n" +
-                                "4. Then try subscribing again.\n\n" +
+                        userFriendlyMessage = "The application could not connect to its internal service.\n\n" +
+                                "This can happen if:\n" +
+                                "1. Another program is using port 8080.\n" +
+                                "2. A firewall is blocking the application.\n" +
+                                "3. The application is still starting up (please wait 30 seconds).\n\n" +
+                                "Please try restarting the application as Administrator. If the issue persists, contact support.\n\n"
+                                +
                                 "Error details: " + errorMessage;
                     } else {
-                        userFriendlyMessage = "Failed to create subscription:\n\n" + errorMessage;
+                        userFriendlyMessage = "Failed to create subscription: " + errorMessage;
                     }
 
                     showError(userFriendlyMessage);

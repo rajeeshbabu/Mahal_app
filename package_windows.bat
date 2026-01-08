@@ -48,9 +48,10 @@ if exist "%INPUT_DIR%" rmdir /s /q "%INPUT_DIR%"
 mkdir "%INPUT_DIR%"
 
 if exist "output\MahalApp-1.0.0.exe" del /F /Q "output\MahalApp-1.0.0.exe"
+if exist "output\MahalApp-1.0.0.msi" del /F /Q "output\MahalApp-1.0.0.msi"
 
 REM Copy Dependencies, Main Jar, and Icon
-copy "supabase.properties" "%INPUT_DIR%\"
+copy "frontend\supabase.properties" "%INPUT_DIR%\"
 copy "frontend\target\libs\*.jar" "%INPUT_DIR%\"
 copy "frontend\target\mahal-frontend-1.0.0.jar" "%INPUT_DIR%\"
 copy "frontend\Image\icon.ico" "%INPUT_DIR%\"
@@ -80,11 +81,11 @@ jpackage ^
   --icon %INPUT_DIR%\icon.ico ^
   --win-console
 
-REM Step 4b: Create Standalone EXE/MSI Installer for distribution
+REM Step 4b: Create Standalone EXE Installer for distribution
 REM Note: This requires WiX Toolset to be installed on the system
-echo Creating MSI Installer...
+echo Creating EXE Installer...
 jpackage ^
-  --type msi ^
+  --type exe ^
   --input %INPUT_DIR% ^
   --name %APP_NAME% ^
   --main-jar %MAIN_JAR% ^
@@ -95,10 +96,11 @@ jpackage ^
   --icon %INPUT_DIR%\icon.ico ^
   --win-shortcut ^
   --win-menu ^
-  --win-dir-chooser
+  --win-dir-chooser ^
+  --win-console
 
 if %errorlevel% neq 0 (
-    echo [WARNING] MSI Installation failed. Ensure WiX Toolset is installed: https://wixtoolset.org/releases/
+    echo [WARNING] EXE Installation failed. Ensure WiX Toolset is installed: https://wixtoolset.org/releases/
 )
 
 echo.
@@ -107,4 +109,3 @@ echo  SUCCESS! App Image created in output/%APP_NAME%
 echo ==================================================
 echo To test, run: output\%APP_NAME%\%APP_NAME%.exe
 echo.
-pause
