@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Payment - Mahal Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 10px 5px;
+            background: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+            font-size: 16px;
+        }
+        .button:hover {
+            background: #45a049;
+        }
+        .button-danger {
+            background: #f44336;
+        }
+        .button-danger:hover {
+            background: #da190b;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Mock Payment Page</h1>
+        <div class="info">
+            <strong>⚠️ TEST MODE</strong><br>
+            This is a mock payment page for testing. No real payment will be processed.<br>
+            <strong>Subscription ID:</strong> <span id="subscriptionId"></span><br>
+            <strong>User ID:</strong> <span id="userId"></span><br>
+            <strong>Plan:</strong> <span id="plan"></span>
+        </div>
+        
+        <p>Click the buttons below to simulate payment scenarios:</p>
+        
+        <button class="button" onclick="simulateSuccess()">✅ Simulate Payment Success</button>
+        <button class="button button-danger" onclick="simulateFailure()">❌ Simulate Payment Failure</button>
+        
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        // Get parameters from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const subscriptionId = urlParams.get('subscription_id') || 'unknown';
+        const userId = urlParams.get('user_id') || 'unknown';
+        const plan = urlParams.get('plan') || 'unknown';
+
+        document.getElementById('subscriptionId').textContent = subscriptionId;
+        document.getElementById('userId').textContent = userId;
+        document.getElementById('plan').textContent = plan;
+
+        function simulateSuccess() {
+            fetch(`/mock-payment/success?subscription_id=${subscriptionId}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                const statusDiv = document.getElementById('status');
+                if (data.success) {
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = '✅ ' + data.message + ' Subscription is now active!';
+                    // Close window after 2 seconds
+                    setTimeout(() => {
+                        window.close();
+                    }, 2000);
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = '❌ ' + data.message;
+                }
+            })
+            .catch(error => {
+                const statusDiv = document.getElementById('status');
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ Error: ' + error.message;
+            });
+        }
+
+        function simulateFailure() {
+            fetch(`/mock-payment/failure?subscription_id=${subscriptionId}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                const statusDiv = document.getElementById('status');
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ ' + data.message;
+            })
+            .catch(error => {
+                const statusDiv = document.getElementById('status');
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ Error: ' + error.message;
+            });
+        }
+    </script>
+</body>
+</html>
+

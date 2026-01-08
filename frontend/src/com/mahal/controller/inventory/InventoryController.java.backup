@@ -1,0 +1,2554 @@
+package com.mahal.controller.inventory;
+
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.stage.Stage;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.beans.property.SimpleStringProperty;
+import com.mahal.database.InventoryItemDAO;
+import com.mahal.database.DamagedItemDAO;
+import com.mahal.database.RentItemDAO;
+import com.mahal.database.RentDAO;
+import com.mahal.model.InventoryItem;
+import com.mahal.model.DamagedItem;
+import com.mahal.model.RentItem;
+import com.mahal.model.Rent;
+import com.mahal.util.TableStyler;
+import com.mahal.util.FormStyler;
+import com.mahal.util.StyleHelper;
+import javafx.util.Duration;
+import javafx.animation.PauseTransition;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import javafx.stage.PopupWindow;
+
+public class InventoryController {
+    private VBox view;
+    private StackPane contentPane;
+    private VBox addItemsViewPane;
+    private VBox damagedViewPane;
+    private VBox rentItemsViewPane;
+    private VBox rentViewPane;
+    private VBox rentListViewPane;
+    private InventoryItemDAO itemDAO;
+    private DamagedItemDAO damagedDAO;
+    private RentItemDAO rentItemDAO;
+    private RentDAO rentDAO;
+
+    private ObservableList<InventoryItem> itemList = FXCollections.observableArrayList();
+    private ObservableList<DamagedItem> damagedList = FXCollections.observableArrayList();
+    private ObservableList<RentItem> rentItemList = FXCollections.observableArrayList();
+    private ObservableList<Rent> rentList = FXCollections.observableArrayList();
+
+    public InventoryController() {
+        this.itemDAO = new InventoryItemDAO();
+        this.damagedDAO = new DamagedItemDAO();
+        this.rentItemDAO = new RentItemDAO();
+        this.rentDAO = new RentDAO();
+        createView();
+
+        // Subscribe to sync events
+        com.mahal.util.EventBus.getInstance().subscribe("inventory_items",
+                e -> javafx.application.Platform.runLater(this::loadItems));
+        com.mahal.util.EventBus.getInstance().subscribe("damaged_items",
+                e -> javafx.application.Platform.runLater(() -> {
+                    loadDamaged();
+                    loadItems();
+                }));
+        com.mahal.util.EventBus.getInstance().subscribe("rent_items",
+                e -> javafx.application.Platform.runLater(this::loadRentItems));
+        com.mahal.util.EventBus.getInstance().subscribe("rents",
+                e -> javafx.application.Platform.runLater(this::loadRents));
+    }
+
+    public VBox getView() {
+        return view;
+    }
+
+    private void styleSwitcherButton(Button btn, boolean active) {
+        btn.setStyle(StyleHelper.getPillButtonStyle(active));
+    }
+
+    private void styleDatePickerPopup(DatePicker datePicker) {
+        datePicker.setOnShowing(e -> {
+            javafx.application.Platform.runLater(() -> {
+                try {
+                    // Wait a bit for popup to fully render
+                    javafx.util.Duration delay = javafx.util.Duration.millis(50);
+                    javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(delay);
+                    pause.setOnFinished(ev -> {
+                        try {
+                            // Find all popup windows
+                            for (javafx.stage.Window window : javafx.stage.Window.getWindows()) {
+                                if (window instanceof javafx.stage.PopupWindow && window.isShowing()) {
+                                    javafx.scene.Scene popupScene = window.getScene();
+                                    if (popupScene != null && popupScene.getRoot() != null) {
+                                        javafx.scene.Node popupRoot = popupScene.getRoot();
+                                        // Style month/year labels - try multiple selectors
+                                        popupRoot.lookupAll(".month-year-pane .label").forEach(node -> {
+                                            if (node instanceof Label) {
+                                                ((Label) node).setStyle("-fx-text-fill: #000000;");
+                                            }
+                                        });
+                                        popupRoot.lookupAll(".spinner-label").forEach(node -> {
+                                            if (node instanceof Label) {
+                                                ((Label) node).setStyle("-fx-text-fill: #000000;");
+                                            }
+                                        });
+                                        // Also try direct lookup of month-year-pane
+                                        javafx.scene.Node monthYearPane = popupRoot.lookup(".month-year-pane");
+                                        if (monthYearPane != null) {
+                                            monthYearPane.lookupAll(".label").forEach(node -> {
+                                                if (node instanceof Label) {
+                                                    ((Label) node).setStyle("-fx-text-fill: #000000;");
+                                                }
+                                            });
+                                        }
+                                        // Try to find all labels in the popup and style month/year ones
+                                        popupRoot.lookupAll(".label").forEach(node -> {
+                                            if (node instanceof Label) {
+                                                Label label = (Label) node;
+                                                String text = label.getText();
+                                                // Check if this looks like a month or year label
+                                                if (text != null && (text.matches("\\d{4}") ||
+                                                        text.matches(
+                                                                "January|February|March|April|May|June|July|August|September|October|November|December"))) {
+                                                    label.setStyle("-fx-text-fill: #000000;");
+                                                }
+                                            }
+                                        });
+                                    }
+                                }
+                            }
+                        } catch (Exception ex) {
+                            // Ignore if popup structure is different
+                        }
+                    });
+                    pause.play();
+                } catch (Exception ex) {
+                    // Ignore if popup structure is different
+                }
+            });
+        });
+    }
+
+    private void createView() {
+        view = new VBox(20);
+        view.setPadding(new Insets(20));
+        view.setStyle(StyleHelper.getCardStyle());
+
+        Label titleLabel = new Label("Inventory Management");
+        titleLabel.setStyle(StyleHelper.getTitleStyle());
+
+        // Emerald Pill Switcher
+        HBox switcher = new HBox(8);
+        switcher.setAlignment(Pos.CENTER_LEFT);
+        switcher.setStyle(StyleHelper.getPillSwitcherContainerStyle());
+
+        Button addItemBtn = new Button("Add Items");
+        Button damagedBtn = new Button("Damaged List");
+        Button rentItemsBtn = new Button("Rent Items");
+        Button rentBtn = new Button("Rent");
+        Button rentListBtn = new Button("Rent List");
+
+        styleSwitcherButton(addItemBtn, true);
+        styleSwitcherButton(damagedBtn, false);
+        styleSwitcherButton(rentItemsBtn, false);
+        styleSwitcherButton(rentBtn, false);
+        styleSwitcherButton(rentListBtn, false);
+
+        switcher.getChildren().addAll(addItemBtn, damagedBtn, rentItemsBtn, rentBtn, rentListBtn);
+
+        contentPane = new StackPane();
+        contentPane.setPadding(new Insets(10, 0, 0, 0));
+        addItemsViewPane = createAddItemsView();
+        damagedViewPane = createDamagedView();
+        rentItemsViewPane = createRentItemsView();
+        rentViewPane = createRentView();
+        rentListViewPane = createRentListView();
+        contentPane.getChildren().setAll(addItemsViewPane);
+
+        addItemBtn.setOnAction(e -> {
+            styleSwitcherButton(addItemBtn, true);
+            styleSwitcherButton(damagedBtn, false);
+            styleSwitcherButton(rentItemsBtn, false);
+            styleSwitcherButton(rentBtn, false);
+            styleSwitcherButton(rentListBtn, false);
+            contentPane.getChildren().setAll(addItemsViewPane);
+        });
+
+        damagedBtn.setOnAction(e -> {
+            styleSwitcherButton(addItemBtn, false);
+            styleSwitcherButton(damagedBtn, true);
+            styleSwitcherButton(rentItemsBtn, false);
+            styleSwitcherButton(rentBtn, false);
+            styleSwitcherButton(rentListBtn, false);
+            contentPane.getChildren().setAll(damagedViewPane);
+        });
+
+        rentItemsBtn.setOnAction(e -> {
+            styleSwitcherButton(addItemBtn, false);
+            styleSwitcherButton(damagedBtn, false);
+            styleSwitcherButton(rentItemsBtn, true);
+            styleSwitcherButton(rentBtn, false);
+            styleSwitcherButton(rentListBtn, false);
+            contentPane.getChildren().setAll(rentItemsViewPane);
+        });
+
+        rentBtn.setOnAction(e -> {
+            styleSwitcherButton(addItemBtn, false);
+            styleSwitcherButton(damagedBtn, false);
+            styleSwitcherButton(rentItemsBtn, false);
+            styleSwitcherButton(rentBtn, true);
+            styleSwitcherButton(rentListBtn, false);
+            contentPane.getChildren().setAll(rentViewPane);
+        });
+
+        rentListBtn.setOnAction(e -> {
+            styleSwitcherButton(addItemBtn, false);
+            styleSwitcherButton(damagedBtn, false);
+            styleSwitcherButton(rentItemsBtn, false);
+            styleSwitcherButton(rentBtn, false);
+            styleSwitcherButton(rentListBtn, true);
+            contentPane.getChildren().setAll(rentListViewPane);
+        });
+
+        view.getChildren().addAll(titleLabel, switcher, contentPane);
+    }
+
+    // ========== ADD ITEMS VIEW ==========
+    private VBox createAddItemsView() {
+        VBox box = new VBox(12);
+        box.setPadding(new Insets(12));
+
+        // Add button to show the form
+        Button addBtn = new Button("Add");
+        addBtn.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        addBtn.setOnMouseEntered(e -> addBtn.setStyle(
+                "-fx-background-color: #1d4ed8; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        addBtn.setOnMouseExited(e -> addBtn.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background: transparent;");
+        scrollPane.setVisible(false);
+        scrollPane.setManaged(false);
+
+        VBox form = new VBox(12);
+        form.setSpacing(12);
+        form.setPadding(new Insets(12, 12, 16, 12));
+        form.setStyle("-fx-background-color: #ffffff;");
+
+        Label title = FormStyler.createFormLabel("Add Item");
+        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + StyleHelper.TEXT_GRAY_900 + ";");
+
+        String fieldStyle = "-fx-background-color: #ffffff; -fx-background-radius: 8; -fx-border-radius: 8; "
+                + "-fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 8 12; -fx-font-size: 12px;";
+        String focusStyle = "-fx-background-color: #ffffff; -fx-background-radius: 8; -fx-border-radius: 8; "
+                + "-fx-border-color: #2563eb; -fx-border-width: 2; -fx-padding: 8 12; -fx-font-size: 12px;";
+        String datePickerStyle = fieldStyle;
+        String datePickerFocusStyle = focusStyle;
+
+        TextField itemNameField = new TextField();
+        itemNameField.setPromptText("Item Name *");
+        itemNameField.setPrefHeight(32);
+        itemNameField.setStyle(fieldStyle);
+        itemNameField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> itemNameField.setStyle(newVal ? focusStyle : fieldStyle));
+
+        TextField skuField = new TextField();
+        skuField.setPromptText("SKU / Code");
+        skuField.setPrefHeight(32);
+        skuField.setStyle(fieldStyle);
+        skuField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> skuField.setStyle(newVal ? focusStyle : fieldStyle));
+
+        TextField quantityField = new TextField();
+        quantityField.setPromptText("Quantity");
+        quantityField.setPrefHeight(32);
+        quantityField.setStyle(fieldStyle);
+        quantityField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> quantityField.setStyle(newVal ? focusStyle : fieldStyle));
+        quantityField.setTextFormatter(new javafx.scene.control.TextFormatter<>(change -> {
+            String text = change.getText();
+            if (text.matches("[0-9]*")) {
+                return change;
+            }
+            return null;
+        }));
+
+        TextField locationField = new TextField();
+        locationField.setPromptText("Location");
+        locationField.setPrefHeight(32);
+        locationField.setStyle(fieldStyle);
+        locationField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> locationField.setStyle(newVal ? focusStyle : fieldStyle));
+
+        DatePicker purchaseDatePicker = new DatePicker();
+        purchaseDatePicker.setPromptText("Purchase Date");
+        purchaseDatePicker.setPrefHeight(32);
+        purchaseDatePicker.setStyle(datePickerStyle);
+        purchaseDatePicker.focusedProperty().addListener(
+                (obs, oldVal, newVal) -> purchaseDatePicker.setStyle(newVal ? datePickerFocusStyle : datePickerStyle));
+        styleDatePickerPopup(purchaseDatePicker);
+
+        TextField supplierField = new TextField();
+        supplierField.setPromptText("Supplier");
+        supplierField.setPrefHeight(32);
+        supplierField.setStyle(fieldStyle);
+        supplierField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> supplierField.setStyle(newVal ? focusStyle : fieldStyle));
+
+        TextField valueField = new TextField();
+        valueField.setPromptText("Value");
+        valueField.setPrefHeight(32);
+        valueField.setStyle(fieldStyle);
+        valueField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> valueField.setStyle(newVal ? focusStyle : fieldStyle));
+        valueField.setTextFormatter(new javafx.scene.control.TextFormatter<>(change -> {
+            String text = change.getText();
+            if (text.matches("[0-9]*\\.?[0-9]*")) {
+                return change;
+            }
+            return null;
+        }));
+
+        TextArea notesField = new TextArea();
+        notesField.setPromptText("Notes");
+        notesField.setPrefRowCount(3);
+        notesField.setStyle(fieldStyle);
+        notesField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> notesField.setStyle(newVal ? focusStyle : fieldStyle));
+
+        Button save = new Button("Save Item");
+        save.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        save.setOnMouseEntered(e -> save.setStyle(
+                "-fx-background-color: #1d4ed8; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        save.setOnMouseExited(e -> save.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        save.setOnAction(e -> {
+            // Get and trim all field values
+            String itemName = itemNameField.getText().trim();
+            String sku = skuField.getText().trim();
+            String location = locationField.getText().trim();
+            String supplier = supplierField.getText().trim();
+            String notes = notesField.getText().trim();
+
+            // Validate that at least item name is provided (required field)
+            if (itemName.isEmpty()) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Validation Error");
+                alert.setContentText("Item Name is required. Cannot create a record without an item name.");
+                alert.showAndWait();
+                return;
+            }
+
+            InventoryItem item = new InventoryItem();
+            item.setItemName(itemName);
+            item.setSkuCode(sku.isEmpty() ? null : sku);
+            try {
+                item.setQuantity(quantityField.getText().trim().isEmpty() ? 0
+                        : Integer.parseInt(quantityField.getText().trim()));
+            } catch (NumberFormatException ex) {
+                item.setQuantity(0);
+            }
+            item.setLocation(location.isEmpty() ? null : location);
+            item.setPurchaseDate(purchaseDatePicker.getValue());
+            item.setSupplier(supplier.isEmpty() ? null : supplier);
+            try {
+                String valueStr = valueField.getText().trim();
+                if (!valueStr.isEmpty()) {
+                    item.setValue(new BigDecimal(valueStr));
+                }
+            } catch (NumberFormatException ex) {
+                // Invalid number, skip
+            }
+            item.setNotes(notes.isEmpty() ? null : notes);
+
+            saveItem(item, null, itemNameField, skuField, quantityField, locationField,
+                    purchaseDatePicker, supplierField, valueField, notesField, scrollPane, addBtn);
+        });
+
+        Button clear = new Button("Clear");
+        clear.setStyle(
+                "-fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        clear.setOnMouseEntered(e -> clear.setStyle(
+                "-fx-background-color: #dc2626; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        clear.setOnMouseExited(e -> clear.setStyle(
+                "-fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        clear.setOnAction(e -> {
+            itemNameField.clear();
+            skuField.clear();
+            quantityField.clear();
+            locationField.clear();
+            purchaseDatePicker.setValue(null);
+            supplierField.clear();
+            valueField.clear();
+            notesField.clear();
+        });
+
+        Button close = new Button("Close");
+        close.setStyle(
+                "-fx-background-color: #64748b; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        close.setOnMouseEntered(e -> close.setStyle(
+                "-fx-background-color: #475569; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        close.setOnMouseExited(e -> close.setStyle(
+                "-fx-background-color: #64748b; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        close.setOnAction(e -> {
+            scrollPane.setVisible(false);
+            scrollPane.setManaged(false);
+            addBtn.setVisible(true);
+            addBtn.setManaged(true);
+            // Clear form fields when closing
+            itemNameField.clear();
+            skuField.clear();
+            quantityField.clear();
+            locationField.clear();
+            purchaseDatePicker.setValue(null);
+            supplierField.clear();
+            valueField.clear();
+            notesField.clear();
+        });
+
+        HBox buttons = new HBox(10, clear, close, save);
+        buttons.setAlignment(Pos.CENTER_RIGHT);
+
+        form.getChildren().setAll(
+                title,
+                FormStyler.createCompactFormField("Item Name *", itemNameField),
+                FormStyler.createCompactFormField("SKU / Code", skuField),
+                FormStyler.createCompactFormField("Quantity", quantityField),
+                FormStyler.createCompactFormField("Location", locationField),
+                FormStyler.createCompactFormField("Purchase Date", purchaseDatePicker),
+                FormStyler.createCompactFormField("Supplier", supplierField),
+                FormStyler.createCompactFormField("Value", valueField),
+                FormStyler.createCompactFormField("Notes", notesField),
+                buttons);
+
+        scrollPane.setContent(form);
+
+        // Show form when Add button is clicked
+        addBtn.setOnAction(e -> {
+            scrollPane.setVisible(true);
+            scrollPane.setManaged(true);
+            addBtn.setVisible(false);
+            addBtn.setManaged(false);
+        });
+
+        // Items Table
+        TableView<InventoryItem> table = new TableView<>();
+        TableStyler.applyModernStyling(table);
+
+        TableColumn<InventoryItem, String> nameCol = new TableColumn<>("NAME");
+        nameCol.setCellValueFactory(cell -> {
+            String name = cell.getValue().getItemName();
+            return new SimpleStringProperty(name != null ? name : "");
+        });
+        TableStyler.styleTableColumn(nameCol);
+
+        TableColumn<InventoryItem, String> skuCol = new TableColumn<>("SKU");
+        skuCol.setCellValueFactory(cell -> {
+            String sku = cell.getValue().getSkuCode();
+            return new javafx.beans.property.SimpleStringProperty(sku != null ? sku : "");
+        });
+        TableStyler.styleTableColumn(skuCol);
+
+        TableColumn<InventoryItem, String> qtyCol = new TableColumn<>("QUANTITY");
+        qtyCol.setCellValueFactory(cell -> {
+            Integer qty = cell.getValue().getQuantity();
+            return new javafx.beans.property.SimpleStringProperty(qty != null ? qty.toString() : "0");
+        });
+        TableStyler.styleTableColumn(qtyCol);
+
+        TableColumn<InventoryItem, String> locationCol = new TableColumn<>("LOCATION");
+        locationCol.setCellValueFactory(cell -> {
+            String loc = cell.getValue().getLocation();
+            return new javafx.beans.property.SimpleStringProperty(loc != null ? loc : "");
+        });
+        TableStyler.styleTableColumn(locationCol);
+
+        TableColumn<InventoryItem, String> valueCol = new TableColumn<>("VALUE");
+        valueCol.setCellValueFactory(cell -> {
+            BigDecimal val = cell.getValue().getValue();
+            return new javafx.beans.property.SimpleStringProperty(val != null ? val.toString() : "");
+        });
+        TableStyler.styleTableColumn(valueCol);
+
+        TableColumn<InventoryItem, String> actionsCol = createItemActionsColumn(table);
+        table.getColumns().addAll(nameCol, skuCol, qtyCol, locationCol, valueCol, actionsCol);
+        table.setItems(itemList);
+
+        HBox toolbar = new HBox(10);
+        Button refreshBtn = new Button("🔄 Refresh");
+        refreshBtn.setStyle(
+                "-fx-background-color: #10b981; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        refreshBtn.setOnMouseEntered(e -> refreshBtn.setStyle(
+                "-fx-background-color: #059669; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        refreshBtn.setOnMouseExited(e -> refreshBtn.setStyle(
+                "-fx-background-color: #10b981; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        refreshBtn.setOnAction(e -> loadItems());
+        toolbar.getChildren().addAll(refreshBtn);
+
+        box.getChildren().addAll(addBtn, scrollPane, toolbar, table);
+        loadItems();
+        return box;
+    }
+
+    private TableColumn<InventoryItem, String> createItemActionsColumn(TableView<InventoryItem> table) {
+        TableColumn<InventoryItem, String> actionsCol = new TableColumn<>("Actions");
+        actionsCol.setCellFactory(col -> new TableCell<InventoryItem, String>() {
+            private final Button editBtn = new Button("Edit");
+            private final Button delBtn = new Button("Delete");
+
+            {
+                editBtn.setStyle(StyleHelper.getEditButtonStyle());
+                editBtn.setOnMouseEntered(e -> editBtn.setStyle(StyleHelper.getEditButtonHoverStyle()));
+                editBtn.setOnMouseExited(e -> editBtn.setStyle(StyleHelper.getEditButtonStyle()));
+
+                delBtn.setStyle(StyleHelper.getDangerButtonStyle());
+                delBtn.setOnMouseEntered(e -> delBtn.setStyle(StyleHelper.getDangerButtonHoverStyle()));
+                delBtn.setOnMouseExited(e -> delBtn.setStyle(StyleHelper.getDangerButtonStyle()));
+
+                editBtn.setOnAction(e -> {
+                    InventoryItem item = getTableView().getItems().get(getIndex());
+                    showEditItemDialog(item);
+                });
+
+                delBtn.setOnAction(e -> {
+                    InventoryItem item = getTableView().getItems().get(getIndex());
+                    deleteItem(item);
+                });
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    HBox h = new HBox(5);
+                    h.setAlignment(Pos.CENTER);
+                    h.getChildren().addAll(editBtn, delBtn);
+                    setGraphic(h);
+                }
+            }
+        });
+        TableStyler.styleTableColumn(actionsCol);
+        return actionsCol;
+    }
+
+    // ========== DAMAGED VIEW ==========
+    private VBox createDamagedView() {
+        VBox box = new VBox(12);
+        box.setPadding(new Insets(12));
+
+        // Add button to show the form
+        Button addBtn = new Button("Add");
+        addBtn.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        addBtn.setOnMouseEntered(e -> addBtn.setStyle(
+                "-fx-background-color: #1d4ed8; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        addBtn.setOnMouseExited(e -> addBtn.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background: transparent;");
+        scrollPane.setVisible(false);
+        scrollPane.setManaged(false);
+        scrollPane.setMinHeight(Region.USE_PREF_SIZE);
+        scrollPane.setPrefHeight(Region.USE_COMPUTED_SIZE);
+
+        VBox form = new VBox(12);
+        form.setSpacing(12);
+        form.setPadding(new Insets(12, 12, 16, 12));
+        form.setStyle("-fx-background-color: #ffffff;");
+
+        Label title = FormStyler.createFormLabel("Mark Damaged Item");
+        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + StyleHelper.TEXT_GRAY_900 + ";");
+
+        String fieldStyle = "-fx-background-color: #ffffff; -fx-background-radius: 8; -fx-border-radius: 8; "
+                + "-fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 8 12; -fx-font-size: 12px;";
+        String focusStyle = "-fx-background-color: #ffffff; -fx-background-radius: 8; -fx-border-radius: 8; "
+                + "-fx-border-color: #2563eb; -fx-border-width: 2; -fx-padding: 8 12; -fx-font-size: 12px;";
+        String datePickerStyle = fieldStyle;
+        String datePickerFocusStyle = focusStyle;
+
+        ComboBox<InventoryItem> itemCombo = new ComboBox<>();
+        itemCombo.setPromptText("Inventory Item *");
+        itemCombo.setItems(itemList);
+        itemCombo.setPrefHeight(32);
+        itemCombo.setStyle(fieldStyle);
+        itemCombo.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> itemCombo.setStyle(newVal ? focusStyle : fieldStyle));
+        itemCombo.setCellFactory(listView -> new ListCell<InventoryItem>() {
+            @Override
+            protected void updateItem(InventoryItem item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getItemName() + " (Qty: " + (item.getQuantity() != null ? item.getQuantity() : 0)
+                            + ")");
+                }
+            }
+        });
+        itemCombo.setButtonCell(new ListCell<InventoryItem>() {
+            @Override
+            protected void updateItem(InventoryItem item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText("Select Item");
+                } else {
+                    setText(item.getItemName());
+                }
+            }
+        });
+
+        TextField quantityField = new TextField();
+        quantityField.setPromptText("Quantity");
+        quantityField.setPrefHeight(32);
+        quantityField.setStyle(fieldStyle);
+        quantityField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> quantityField.setStyle(newVal ? focusStyle : fieldStyle));
+        quantityField.setTextFormatter(new javafx.scene.control.TextFormatter<>(change -> {
+            String text = change.getText();
+            if (text.matches("[0-9]*")) {
+                return change;
+            }
+            return null;
+        }));
+
+        DatePicker damageDatePicker = new DatePicker();
+        damageDatePicker.setPromptText("Damage Date");
+        damageDatePicker.setValue(LocalDate.now());
+        damageDatePicker.setPrefHeight(32);
+        damageDatePicker.setStyle(datePickerStyle);
+        damageDatePicker.focusedProperty().addListener(
+                (obs, oldVal, newVal) -> damageDatePicker.setStyle(newVal ? datePickerFocusStyle : datePickerStyle));
+        styleDatePickerPopup(damageDatePicker);
+
+        TextArea reasonField = new TextArea();
+        reasonField.setPromptText("Reason");
+        reasonField.setPrefRowCount(3);
+        reasonField.setStyle(fieldStyle);
+        reasonField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> reasonField.setStyle(newVal ? focusStyle : fieldStyle));
+
+        Button save = new Button("Save");
+        save.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        save.setOnMouseEntered(e -> save.setStyle(
+                "-fx-background-color: #1d4ed8; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        save.setOnMouseExited(e -> save.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        save.setOnAction(e -> {
+            if (itemCombo.getValue() == null) {
+                new Alert(Alert.AlertType.WARNING, "Inventory Item is required", ButtonType.OK).showAndWait();
+                return;
+            }
+
+            // Validate that at least one other field has a value
+            String quantity = quantityField.getText().trim();
+            String reason = reasonField.getText().trim();
+
+            boolean allEmpty = quantity.isEmpty() && reason.isEmpty() && damageDatePicker.getValue() == null;
+
+            if (allEmpty) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Validation Error");
+                alert.setContentText(
+                        "Please fill at least one field (Quantity, Reason, or Damage Date) before saving. Cannot create a record with all empty fields.");
+                alert.showAndWait();
+                return;
+            }
+
+            // Convert empty strings to null to prevent blank values in database
+            DamagedItem damaged = new DamagedItem();
+            damaged.setInventoryItemId(itemCombo.getValue().getId());
+            try {
+                damaged.setQuantity(quantity.isEmpty() ? 0 : Integer.parseInt(quantity));
+            } catch (NumberFormatException ex) {
+                damaged.setQuantity(0);
+            }
+            damaged.setDamageDate(damageDatePicker.getValue());
+            damaged.setReason(reason.isEmpty() ? null : reason);
+
+            saveDamagedItem(damaged, scrollPane, addBtn);
+        });
+
+        Button clear = new Button("Clear");
+        clear.setStyle(
+                "-fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        clear.setOnMouseEntered(e -> clear.setStyle(
+                "-fx-background-color: #dc2626; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        clear.setOnMouseExited(e -> clear.setStyle(
+                "-fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        clear.setOnAction(e -> {
+            itemCombo.getSelectionModel().clearSelection();
+            quantityField.clear();
+            damageDatePicker.setValue(LocalDate.now());
+            reasonField.clear();
+        });
+
+        Button close = new Button("Close");
+        close.setStyle(
+                "-fx-background-color: #64748b; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        close.setOnMouseEntered(e -> close.setStyle(
+                "-fx-background-color: #475569; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        close.setOnMouseExited(e -> close.setStyle(
+                "-fx-background-color: #64748b; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        close.setOnAction(e -> {
+            scrollPane.setVisible(false);
+            scrollPane.setManaged(false);
+            addBtn.setVisible(true);
+            addBtn.setManaged(true);
+            // Clear form fields when closing
+            itemCombo.getSelectionModel().clearSelection();
+            quantityField.clear();
+            damageDatePicker.setValue(LocalDate.now());
+            reasonField.clear();
+        });
+
+        HBox buttons = new HBox(10, clear, close, save);
+        buttons.setAlignment(Pos.CENTER_RIGHT);
+        buttons.setPadding(new Insets(8, 0, 0, 0));
+
+        form.getChildren().setAll(
+                title,
+                FormStyler.createCompactFormField("Inventory Item *", itemCombo),
+                FormStyler.createCompactFormField("Quantity", quantityField),
+                FormStyler.createCompactFormField("Damage Date", damageDatePicker),
+                FormStyler.createCompactFormField("Reason", reasonField),
+                buttons);
+
+        scrollPane.setContent(form);
+
+        // Show form when Add button is clicked
+        addBtn.setOnAction(e -> {
+            addBtn.setVisible(false);
+            addBtn.setManaged(false);
+            scrollPane.setVisible(true);
+            scrollPane.setManaged(true);
+            // Force layout update
+            scrollPane.requestLayout();
+            form.requestLayout();
+        });
+
+        // Damaged Items Table
+        TableView<DamagedItem> table = new TableView<>();
+        TableStyler.applyModernStyling(table);
+
+        TableColumn<DamagedItem, String> itemCol = new TableColumn<>("Item");
+        itemCol.setCellValueFactory(cell -> {
+            String name = cell.getValue().getInventoryItemName();
+            return new SimpleStringProperty(name != null ? name : "");
+        });
+        TableStyler.styleTableColumn(itemCol);
+
+        TableColumn<DamagedItem, String> qtyCol = new TableColumn<>("QUANTITY");
+        qtyCol.setCellValueFactory(cell -> {
+            Integer qty = cell.getValue().getQuantity();
+            return new javafx.beans.property.SimpleStringProperty(qty != null ? qty.toString() : "");
+        });
+        TableStyler.styleTableColumn(qtyCol);
+
+        TableColumn<DamagedItem, String> dateCol = new TableColumn<>("DAMAGE DATE");
+        dateCol.setCellValueFactory(cell -> {
+            LocalDate date = cell.getValue().getDamageDate();
+            return new javafx.beans.property.SimpleStringProperty(date != null ? date.toString() : "");
+        });
+        TableStyler.styleTableColumn(dateCol);
+
+        TableColumn<DamagedItem, String> reasonCol = new TableColumn<>("REASON");
+        reasonCol.setCellValueFactory(cell -> {
+            String reason = cell.getValue().getReason();
+            return new javafx.beans.property.SimpleStringProperty(reason != null ? reason : "");
+        });
+        TableStyler.styleTableColumn(reasonCol);
+
+        TableColumn<DamagedItem, String> actionsCol = createDamagedActionsColumn(table);
+        table.getColumns().addAll(itemCol, qtyCol, dateCol, reasonCol, actionsCol);
+        table.setItems(damagedList);
+
+        HBox toolbar = new HBox(10);
+        Button refreshBtn = new Button("🔄 Refresh");
+        refreshBtn.setStyle(
+                "-fx-background-color: #10b981; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        refreshBtn.setOnMouseEntered(e -> refreshBtn.setStyle(
+                "-fx-background-color: #059669; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        refreshBtn.setOnMouseExited(e -> refreshBtn.setStyle(
+                "-fx-background-color: #10b981; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        refreshBtn.setOnAction(e -> {
+            loadDamaged();
+            loadItems();
+        });
+        toolbar.getChildren().addAll(refreshBtn);
+
+        box.getChildren().addAll(addBtn, scrollPane, toolbar, table);
+        loadDamaged();
+        loadItems();
+        return box;
+    }
+
+    private TableColumn<DamagedItem, String> createDamagedActionsColumn(TableView<DamagedItem> table) {
+        TableColumn<DamagedItem, String> actionsCol = new TableColumn<>("Actions");
+        actionsCol.setCellFactory(col -> new TableCell<DamagedItem, String>() {
+            private final Button editBtn = new Button("Edit");
+            private final Button delBtn = new Button("Delete");
+
+            {
+                editBtn.setStyle(StyleHelper.getEditButtonStyle());
+                editBtn.setOnMouseEntered(e -> editBtn.setStyle(StyleHelper.getEditButtonHoverStyle()));
+                editBtn.setOnMouseExited(e -> editBtn.setStyle(StyleHelper.getEditButtonStyle()));
+
+                delBtn.setStyle(StyleHelper.getDangerButtonStyle());
+                delBtn.setOnMouseEntered(e -> delBtn.setStyle(StyleHelper.getDangerButtonHoverStyle()));
+                delBtn.setOnMouseExited(e -> delBtn.setStyle(StyleHelper.getDangerButtonStyle()));
+
+                editBtn.setOnAction(e -> {
+                    DamagedItem damaged = getTableView().getItems().get(getIndex());
+                    showEditDamagedItemDialog(damaged);
+                });
+
+                delBtn.setOnAction(e -> {
+                    DamagedItem damaged = getTableView().getItems().get(getIndex());
+                    deleteDamagedItem(damaged);
+                });
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    HBox h = new HBox(5);
+                    h.setAlignment(Pos.CENTER);
+                    h.getChildren().addAll(editBtn, delBtn);
+                    setGraphic(h);
+                }
+            }
+        });
+        TableStyler.styleTableColumn(actionsCol);
+        return actionsCol;
+    }
+
+    // ========== RENT ITEMS VIEW ==========
+    private VBox createRentItemsView() {
+        VBox box = new VBox(12);
+        box.setPadding(new Insets(12));
+
+        // Add button to show the form
+        Button addBtn = new Button("Add");
+        addBtn.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        addBtn.setOnMouseEntered(e -> addBtn.setStyle(
+                "-fx-background-color: #1d4ed8; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        addBtn.setOnMouseExited(e -> addBtn.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background: transparent;");
+        scrollPane.setVisible(false);
+        scrollPane.setManaged(false);
+        scrollPane.setMinHeight(Region.USE_PREF_SIZE);
+        scrollPane.setPrefHeight(Region.USE_COMPUTED_SIZE);
+
+        VBox form = new VBox(12);
+        form.setSpacing(12);
+        form.setPadding(new Insets(12, 12, 16, 12));
+        form.setStyle("-fx-background-color: #ffffff;");
+
+        Label title = FormStyler.createFormLabel("Add Rent Item");
+        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + StyleHelper.TEXT_GRAY_900 + ";");
+
+        String fieldStyle = "-fx-background-color: #ffffff; -fx-background-radius: 8; -fx-border-radius: 8; "
+                + "-fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 8 12; -fx-font-size: 12px;";
+        String focusStyle = "-fx-background-color: #ffffff; -fx-background-radius: 8; -fx-border-radius: 8; "
+                + "-fx-border-color: #2563eb; -fx-border-width: 2; -fx-padding: 8 12; -fx-font-size: 12px;";
+
+        ComboBox<InventoryItem> itemCombo = new ComboBox<>();
+        itemCombo.setPromptText("Inventory Item *");
+        itemCombo.setItems(itemList);
+        itemCombo.setPrefHeight(32);
+        itemCombo.setStyle(fieldStyle);
+        itemCombo.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> itemCombo.setStyle(newVal ? focusStyle : fieldStyle));
+        itemCombo.setCellFactory(listView -> new ListCell<InventoryItem>() {
+            @Override
+            protected void updateItem(InventoryItem item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getItemName());
+                }
+            }
+        });
+        itemCombo.setButtonCell(new ListCell<InventoryItem>() {
+            @Override
+            protected void updateItem(InventoryItem item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText("Select Item");
+                } else {
+                    setText(item.getItemName());
+                }
+            }
+        });
+
+        TextField rateField = new TextField();
+        rateField.setPromptText("Rate per Day");
+        rateField.setPrefHeight(32);
+        rateField.setStyle(fieldStyle);
+        rateField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> rateField.setStyle(newVal ? focusStyle : fieldStyle));
+        rateField.setTextFormatter(new javafx.scene.control.TextFormatter<>(change -> {
+            String text = change.getText();
+            if (text.matches("[0-9]*\\.?[0-9]*")) {
+                return change;
+            }
+            return null;
+        }));
+
+        TextField depositField = new TextField();
+        depositField.setPromptText("Deposit");
+        depositField.setPrefHeight(32);
+        depositField.setStyle(fieldStyle);
+        depositField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> depositField.setStyle(newVal ? focusStyle : fieldStyle));
+        depositField.setTextFormatter(new javafx.scene.control.TextFormatter<>(change -> {
+            String text = change.getText();
+            if (text.matches("[0-9]*\\.?[0-9]*")) {
+                return change;
+            }
+            return null;
+        }));
+
+        ComboBox<String> availableCombo = new ComboBox<>();
+        availableCombo.getItems().addAll("Available", "Not Available");
+        availableCombo.setValue("Available");
+        availableCombo.setPrefHeight(32);
+        availableCombo.setStyle(fieldStyle);
+        availableCombo.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> availableCombo.setStyle(newVal ? focusStyle : fieldStyle));
+
+        Button save = new Button("Save Rent Item");
+        save.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        save.setOnMouseEntered(e -> save.setStyle(
+                "-fx-background-color: #1d4ed8; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        save.setOnMouseExited(e -> save.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        save.setOnAction(e -> {
+            if (itemCombo.getValue() == null) {
+                new Alert(Alert.AlertType.WARNING, "Inventory Item is required", ButtonType.OK).showAndWait();
+                return;
+            }
+
+            RentItem rentItem = new RentItem();
+            rentItem.setInventoryItemId(itemCombo.getValue().getId());
+            try {
+                if (!rateField.getText().isEmpty()) {
+                    rentItem.setRatePerDay(new BigDecimal(rateField.getText()));
+                }
+            } catch (NumberFormatException ex) {
+                // Invalid number, skip
+            }
+            try {
+                if (!depositField.getText().isEmpty()) {
+                    rentItem.setDeposit(new BigDecimal(depositField.getText()));
+                }
+            } catch (NumberFormatException ex) {
+                // Invalid number, skip
+            }
+            rentItem.setAvailable("Available".equals(availableCombo.getValue()));
+
+            saveRentItem(rentItem, null, scrollPane, addBtn);
+        });
+
+        Button clear = new Button("Clear");
+        clear.setStyle(
+                "-fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        clear.setOnMouseEntered(e -> clear.setStyle(
+                "-fx-background-color: #dc2626; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        clear.setOnMouseExited(e -> clear.setStyle(
+                "-fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        clear.setOnAction(e -> {
+            itemCombo.getSelectionModel().clearSelection();
+            rateField.clear();
+            depositField.clear();
+            availableCombo.setValue("Available");
+        });
+
+        Button close = new Button("Close");
+        close.setStyle(
+                "-fx-background-color: #64748b; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        close.setOnMouseEntered(e -> close.setStyle(
+                "-fx-background-color: #475569; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        close.setOnMouseExited(e -> close.setStyle(
+                "-fx-background-color: #64748b; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        close.setOnAction(e -> {
+            scrollPane.setVisible(false);
+            scrollPane.setManaged(false);
+            addBtn.setVisible(true);
+            addBtn.setManaged(true);
+            // Clear form fields when closing
+            itemCombo.getSelectionModel().clearSelection();
+            rateField.clear();
+            depositField.clear();
+            availableCombo.setValue("Available");
+        });
+
+        HBox buttons = new HBox(10, clear, close, save);
+        buttons.setAlignment(Pos.CENTER_RIGHT);
+        buttons.setPadding(new Insets(8, 0, 0, 0));
+
+        form.getChildren().setAll(
+                title,
+                FormStyler.createCompactFormField("Item *", itemCombo),
+                FormStyler.createCompactFormField("Rate / Day", rateField),
+                FormStyler.createCompactFormField("Deposit", depositField),
+                FormStyler.createCompactFormField("Availability", availableCombo),
+                buttons);
+
+        scrollPane.setContent(form);
+
+        // Show form when Add button is clicked
+        addBtn.setOnAction(e -> {
+            addBtn.setVisible(false);
+            addBtn.setManaged(false);
+            scrollPane.setVisible(true);
+            scrollPane.setManaged(true);
+            // Force layout update
+            scrollPane.requestLayout();
+            form.requestLayout();
+        });
+
+        // Rent Items Table
+        TableView<RentItem> table = new TableView<>();
+        TableStyler.applyModernStyling(table);
+
+        TableColumn<RentItem, String> itemCol = new TableColumn<>("ITEM");
+        itemCol.setCellValueFactory(cell -> {
+            String name = cell.getValue().getInventoryItemName();
+            return new SimpleStringProperty(name != null ? name : "");
+        });
+        TableStyler.styleTableColumn(itemCol);
+
+        TableColumn<RentItem, String> rateCol = new TableColumn<>("RATE/DAY");
+        rateCol.setCellValueFactory(cell -> {
+            BigDecimal rate = cell.getValue().getRatePerDay();
+            return new javafx.beans.property.SimpleStringProperty(rate != null ? rate.toString() : "");
+        });
+        TableStyler.styleTableColumn(rateCol);
+
+        TableColumn<RentItem, String> depositCol = new TableColumn<>("DEPOSIT");
+        depositCol.setCellValueFactory(cell -> {
+            BigDecimal deposit = cell.getValue().getDeposit();
+            return new javafx.beans.property.SimpleStringProperty(deposit != null ? deposit.toString() : "");
+        });
+        TableStyler.styleTableColumn(depositCol);
+
+        TableColumn<RentItem, String> availableCol = new TableColumn<>("AVAILABLE");
+        availableCol.setCellValueFactory(cell -> {
+            Boolean avail = cell.getValue().getAvailable();
+            return new javafx.beans.property.SimpleStringProperty(avail != null && avail ? "Yes" : "No");
+        });
+        TableStyler.styleTableColumn(availableCol);
+
+        TableColumn<RentItem, String> actionsCol = createRentItemActionsColumn(table);
+        table.getColumns().addAll(itemCol, rateCol, depositCol, availableCol, actionsCol);
+        table.setItems(rentItemList);
+
+        HBox toolbar = new HBox(10);
+        Button refreshBtn = new Button("🔄 Refresh");
+        refreshBtn.setStyle(
+                "-fx-background-color: #10b981; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        refreshBtn.setOnMouseEntered(e -> refreshBtn.setStyle(
+                "-fx-background-color: #059669; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        refreshBtn.setOnMouseExited(e -> refreshBtn.setStyle(
+                "-fx-background-color: #10b981; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        refreshBtn.setOnAction(e -> {
+            loadRentItems();
+            loadItems();
+        });
+        toolbar.getChildren().addAll(refreshBtn);
+
+        box.getChildren().addAll(addBtn, scrollPane, toolbar, table);
+        loadRentItems();
+        loadItems();
+        return box;
+    }
+
+    private TableColumn<RentItem, String> createRentItemActionsColumn(TableView<RentItem> table) {
+        TableColumn<RentItem, String> actionsCol = new TableColumn<>("Actions");
+        actionsCol.setCellFactory(col -> new TableCell<RentItem, String>() {
+            private final Button editBtn = new Button("Edit");
+            private final Button delBtn = new Button("Delete");
+
+            {
+                editBtn.setStyle(StyleHelper.getEditButtonStyle());
+                editBtn.setOnMouseEntered(e -> editBtn.setStyle(StyleHelper.getEditButtonHoverStyle()));
+                editBtn.setOnMouseExited(e -> editBtn.setStyle(StyleHelper.getEditButtonStyle()));
+
+                delBtn.setStyle(StyleHelper.getDangerButtonStyle());
+                delBtn.setOnMouseEntered(e -> delBtn.setStyle(StyleHelper.getDangerButtonHoverStyle()));
+                delBtn.setOnMouseExited(e -> delBtn.setStyle(StyleHelper.getDangerButtonStyle()));
+
+                editBtn.setOnAction(e -> {
+                    RentItem rentItem = getTableView().getItems().get(getIndex());
+                    showEditRentItemDialog(rentItem);
+                });
+
+                delBtn.setOnAction(e -> {
+                    RentItem rentItem = getTableView().getItems().get(getIndex());
+                    deleteRentItem(rentItem);
+                });
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    HBox h = new HBox(5);
+                    h.setAlignment(Pos.CENTER);
+                    h.getChildren().addAll(editBtn, delBtn);
+                    setGraphic(h);
+                }
+            }
+        });
+        TableStyler.styleTableColumn(actionsCol);
+        return actionsCol;
+    }
+
+    // ========== RENT VIEW ==========
+    private VBox createRentView() {
+        VBox box = new VBox(12);
+        box.setPadding(new Insets(12));
+
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background: transparent;");
+
+        VBox form = new VBox(12);
+        form.setSpacing(12);
+        form.setPadding(new Insets(12, 12, 16, 12));
+        form.setStyle("-fx-background-color: #ffffff;");
+
+        Label title = FormStyler.createFormLabel("Rent Item");
+        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + StyleHelper.TEXT_GRAY_900 + ";");
+
+        String fieldStyle = "-fx-background-color: #ffffff; -fx-background-radius: 8; -fx-border-radius: 8; "
+                + "-fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 8 12; -fx-font-size: 12px;";
+        String focusStyle = "-fx-background-color: #ffffff; -fx-background-radius: 8; -fx-border-radius: 8; "
+                + "-fx-border-color: #2563eb; -fx-border-width: 2; -fx-padding: 8 12; -fx-font-size: 12px;";
+        String datePickerStyle = fieldStyle;
+        String datePickerFocusStyle = focusStyle;
+
+        ComboBox<RentItem> rentItemCombo = new ComboBox<>();
+        rentItemCombo.setPromptText("Rent Item *");
+        rentItemCombo.setItems(rentItemList);
+        rentItemCombo.setPrefHeight(32);
+        rentItemCombo.setStyle(fieldStyle);
+        rentItemCombo.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> rentItemCombo.setStyle(newVal ? focusStyle : fieldStyle));
+        rentItemCombo.setCellFactory(listView -> new ListCell<RentItem>() {
+            @Override
+            protected void updateItem(RentItem item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    String text = item.getInventoryItemName() != null ? item.getInventoryItemName() : "Item";
+                    if (item.getAvailable() == null || !item.getAvailable()) {
+                        text += " (Not available)";
+                    }
+                    setText(text);
+                }
+            }
+        });
+        rentItemCombo.setButtonCell(new ListCell<RentItem>() {
+            @Override
+            protected void updateItem(RentItem item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText("Select Rent Item");
+                } else {
+                    setText(item.getInventoryItemName());
+                }
+            }
+        });
+
+        TextField renterNameField = new TextField();
+        renterNameField.setPromptText("Renter Name");
+        renterNameField.setPrefHeight(32);
+        renterNameField.setStyle(fieldStyle);
+        renterNameField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> renterNameField.setStyle(newVal ? focusStyle : fieldStyle));
+
+        TextField renterMobileField = new TextField();
+        renterMobileField.setPromptText("Renter Mobile");
+        renterMobileField.setPrefHeight(32);
+        renterMobileField.setStyle(fieldStyle);
+        renterMobileField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> renterMobileField.setStyle(newVal ? focusStyle : fieldStyle));
+
+        DatePicker startDatePicker = new DatePicker();
+        startDatePicker.setPromptText("Rent Start");
+        startDatePicker.setPrefHeight(32);
+        startDatePicker.setStyle(datePickerStyle);
+        startDatePicker.focusedProperty().addListener(
+                (obs, oldVal, newVal) -> startDatePicker.setStyle(newVal ? datePickerFocusStyle : datePickerStyle));
+        styleDatePickerPopup(startDatePicker);
+
+        DatePicker endDatePicker = new DatePicker();
+        endDatePicker.setPromptText("Rent End");
+        endDatePicker.setPrefHeight(32);
+        endDatePicker.setStyle(datePickerStyle);
+        endDatePicker.focusedProperty().addListener(
+                (obs, oldVal, newVal) -> endDatePicker.setStyle(newVal ? datePickerFocusStyle : datePickerStyle));
+        styleDatePickerPopup(endDatePicker);
+
+        TextField amountField = new TextField();
+        amountField.setPromptText("Amount");
+        amountField.setPrefHeight(32);
+        amountField.setStyle(fieldStyle);
+        amountField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> amountField.setStyle(newVal ? focusStyle : fieldStyle));
+        amountField.setTextFormatter(new javafx.scene.control.TextFormatter<>(change -> {
+            String text = change.getText();
+            if (text.matches("[0-9]*\\.?[0-9]*")) {
+                return change;
+            }
+            return null;
+        }));
+
+        TextField depositField = new TextField();
+        depositField.setPromptText("Deposit");
+        depositField.setPrefHeight(32);
+        depositField.setStyle(fieldStyle);
+        depositField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> depositField.setStyle(newVal ? focusStyle : fieldStyle));
+        depositField.setTextFormatter(new javafx.scene.control.TextFormatter<>(change -> {
+            String text = change.getText();
+            if (text.matches("[0-9]*\\.?[0-9]*")) {
+                return change;
+            }
+            return null;
+        }));
+
+        ComboBox<String> statusCombo = new ComboBox<>();
+        statusCombo.getItems().addAll("BOOKED", "RETURNED");
+        statusCombo.setValue("BOOKED");
+        statusCombo.setPrefHeight(32);
+        statusCombo.setStyle(fieldStyle);
+        statusCombo.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> statusCombo.setStyle(newVal ? focusStyle : fieldStyle));
+
+        Button save = new Button("Save Rent");
+        save.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        save.setOnMouseEntered(e -> save.setStyle(
+                "-fx-background-color: #1d4ed8; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        save.setOnMouseExited(e -> save.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        save.setOnAction(e -> {
+            if (rentItemCombo.getValue() == null) {
+                new Alert(Alert.AlertType.WARNING, "Rent Item is required", ButtonType.OK).showAndWait();
+                return;
+            }
+
+            // Validate that at least one other field has a value
+            String renterName = renterNameField.getText().trim();
+            String renterMobile = renterMobileField.getText().trim();
+            String amount = amountField.getText().trim();
+            String deposit = depositField.getText().trim();
+
+            boolean allEmpty = renterName.isEmpty() && renterMobile.isEmpty() && amount.isEmpty() &&
+                    deposit.isEmpty() && startDatePicker.getValue() == null &&
+                    endDatePicker.getValue() == null;
+
+            if (allEmpty) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Validation Error");
+                alert.setContentText(
+                        "Please fill at least one field before saving. Cannot create a record with all empty fields.");
+                alert.showAndWait();
+                return;
+            }
+
+            // Convert empty strings to null to prevent blank values in database
+            Rent rent = new Rent();
+            rent.setRentItemId(rentItemCombo.getValue().getId());
+            rent.setRenterName(renterName.isEmpty() ? null : renterName);
+            rent.setRenterMobile(renterMobile.isEmpty() ? null : renterMobile);
+            rent.setRentStartDate(startDatePicker.getValue());
+            rent.setRentEndDate(endDatePicker.getValue());
+            try {
+                if (!amount.isEmpty()) {
+                    rent.setAmount(new BigDecimal(amount));
+                }
+            } catch (NumberFormatException ex) {
+                // Invalid number, skip
+            }
+            try {
+                if (!deposit.isEmpty()) {
+                    rent.setDeposit(new BigDecimal(deposit));
+                }
+            } catch (NumberFormatException ex) {
+                // Invalid number, skip
+            }
+            rent.setStatus(statusCombo.getValue());
+
+            saveRent(rent, null, rentItemCombo, renterNameField, renterMobileField,
+                    startDatePicker, endDatePicker, amountField, depositField, statusCombo);
+        });
+
+        Button clear = new Button("Clear");
+        clear.setStyle(
+                "-fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        clear.setOnMouseEntered(e -> clear.setStyle(
+                "-fx-background-color: #dc2626; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        clear.setOnMouseExited(e -> clear.setStyle(
+                "-fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        clear.setOnAction(e -> {
+            rentItemCombo.getSelectionModel().clearSelection();
+            renterNameField.clear();
+            renterMobileField.clear();
+            startDatePicker.setValue(null);
+            endDatePicker.setValue(null);
+            amountField.clear();
+            depositField.clear();
+            statusCombo.setValue("BOOKED");
+        });
+
+        HBox buttons = new HBox(10, clear, save);
+        buttons.setAlignment(Pos.CENTER_RIGHT);
+        buttons.setPadding(new Insets(8, 0, 0, 0));
+
+        form.getChildren().setAll(
+                title,
+                FormStyler.createCompactFormField("Rent Item *", rentItemCombo),
+                FormStyler.createCompactFormField("Renter Name", renterNameField),
+                FormStyler.createCompactFormField("Renter Mobile", renterMobileField),
+                FormStyler.createCompactFormField("Rent Start", startDatePicker),
+                FormStyler.createCompactFormField("Rent End", endDatePicker),
+                FormStyler.createCompactFormField("Amount", amountField),
+                FormStyler.createCompactFormField("Deposit", depositField),
+                FormStyler.createCompactFormField("Status", statusCombo),
+                buttons);
+
+        scrollPane.setContent(form);
+        box.getChildren().addAll(scrollPane);
+
+        // Load rent items for dropdown
+        loadRentItems();
+        return box;
+    }
+
+    // ========== RENT LIST VIEW ==========
+    private VBox createRentListView() {
+        VBox box = new VBox(12);
+        box.setPadding(new Insets(12));
+
+        HBox toolbar = new HBox(10);
+        Button refreshBtn = new Button("🔄 Refresh");
+        refreshBtn.setStyle(
+                "-fx-background-color: #10b981; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        refreshBtn.setOnMouseEntered(e -> refreshBtn.setStyle(
+                "-fx-background-color: #059669; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        refreshBtn.setOnMouseExited(e -> refreshBtn.setStyle(
+                "-fx-background-color: #10b981; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        refreshBtn.setOnAction(e -> {
+            loadRents();
+            loadRentItems();
+            loadItems();
+        });
+        toolbar.getChildren().addAll(refreshBtn);
+
+        TableView<Rent> table = new TableView<>();
+        TableStyler.applyModernStyling(table);
+
+        TableColumn<Rent, String> itemCol = new TableColumn<>("Item");
+        itemCol.setCellValueFactory(cell -> {
+            String name = cell.getValue().getRentItemName();
+            return new SimpleStringProperty(name != null ? name : "");
+        });
+        TableStyler.styleTableColumn(itemCol);
+
+        TableColumn<Rent, String> renterCol = new TableColumn<>("Renter");
+        renterCol.setCellValueFactory(cell -> {
+            String name = cell.getValue().getRenterName();
+            return new SimpleStringProperty(name != null ? name : "");
+        });
+        TableStyler.styleTableColumn(renterCol);
+
+        TableColumn<Rent, String> startCol = new TableColumn<>("Start");
+        startCol.setCellValueFactory(cell -> {
+            LocalDate date = cell.getValue().getRentStartDate();
+            return new javafx.beans.property.SimpleStringProperty(date != null ? date.toString() : "");
+        });
+        TableStyler.styleTableColumn(startCol);
+
+        TableColumn<Rent, String> endCol = new TableColumn<>("End");
+        endCol.setCellValueFactory(cell -> {
+            LocalDate date = cell.getValue().getRentEndDate();
+            String dateStr = date != null ? date.toString() : "";
+            Rent rent = cell.getValue();
+            if (rent.isOverdue()) {
+                dateStr += " (Late)";
+            }
+            return new javafx.beans.property.SimpleStringProperty(dateStr);
+        });
+        TableStyler.styleTableColumn(endCol);
+
+        TableColumn<Rent, String> amountCol = new TableColumn<>("Amount");
+        amountCol.setCellValueFactory(cell -> {
+            BigDecimal amount = cell.getValue().getAmount();
+            return new javafx.beans.property.SimpleStringProperty(amount != null ? amount.toString() : "");
+        });
+        TableStyler.styleTableColumn(amountCol);
+
+        TableColumn<Rent, String> statusCol = new TableColumn<>("Status");
+        statusCol.setCellFactory(col -> new TableCell<Rent, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    Rent rent = getTableView().getItems().get(getIndex());
+                    String status = rent.getStatus();
+                    if (rent.isOverdue()) {
+                        status = "OVERDUE";
+                    }
+
+                    Label statusLabel = new Label(status != null ? status : "BOOKED");
+                    if ("RETURNED".equals(status)) {
+                        statusLabel.setStyle("-fx-background-color: #d1fae5; -fx-text-fill: #065f46; " +
+                                "-fx-padding: 4 8; -fx-background-radius: 4; -fx-font-size: 11px; -fx-font-weight: bold;");
+                    } else if (rent.isOverdue() || "OVERDUE".equals(status)) {
+                        statusLabel.setStyle("-fx-background-color: #fee2e2; -fx-text-fill: #991b1b; " +
+                                "-fx-padding: 4 8; -fx-background-radius: 4; -fx-font-size: 11px; -fx-font-weight: bold;");
+                    } else {
+                        statusLabel.setStyle("-fx-background-color: #fef3c7; -fx-text-fill: #92400e; " +
+                                "-fx-padding: 4 8; -fx-background-radius: 4; -fx-font-size: 11px; -fx-font-weight: bold;");
+                    }
+                    setGraphic(statusLabel);
+                }
+            }
+        });
+        TableStyler.styleTableColumn(statusCol);
+
+        TableColumn<Rent, String> actionsCol = createRentActionsColumn(table);
+        table.getColumns().addAll(itemCol, renterCol, startCol, endCol, amountCol, statusCol, actionsCol);
+        table.setItems(rentList);
+
+        box.getChildren().addAll(toolbar, table);
+        loadRents();
+        return box;
+    }
+
+    private TableColumn<Rent, String> createRentActionsColumn(TableView<Rent> table) {
+        TableColumn<Rent, String> actionsCol = new TableColumn<>("Actions");
+        actionsCol.setCellFactory(col -> new TableCell<Rent, String>() {
+            private final Button editBtn = new Button("Edit");
+            private final Button delBtn = new Button("Delete");
+
+            {
+                editBtn.setStyle(StyleHelper.getEditButtonStyle());
+                editBtn.setOnMouseEntered(e -> editBtn.setStyle(StyleHelper.getEditButtonHoverStyle()));
+                editBtn.setOnMouseExited(e -> editBtn.setStyle(StyleHelper.getEditButtonStyle()));
+
+                delBtn.setStyle(StyleHelper.getDangerButtonStyle());
+                delBtn.setOnMouseEntered(e -> delBtn.setStyle(StyleHelper.getDangerButtonHoverStyle()));
+                delBtn.setOnMouseExited(e -> delBtn.setStyle(StyleHelper.getDangerButtonStyle()));
+
+                editBtn.setOnAction(e -> {
+                    Rent rent = getTableView().getItems().get(getIndex());
+                    showEditRentDialog(rent);
+                });
+
+                delBtn.setOnAction(e -> {
+                    Rent rent = getTableView().getItems().get(getIndex());
+                    deleteRent(rent);
+                });
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty) {
+                    setGraphic(null);
+                } else {
+                    HBox h = new HBox(5);
+                    h.setAlignment(Pos.CENTER);
+                    h.getChildren().addAll(editBtn, delBtn);
+                    setGraphic(h);
+                }
+            }
+        });
+        TableStyler.styleTableColumn(actionsCol);
+        return actionsCol;
+    }
+
+    // ========== LOAD METHODS ==========
+    private void loadItems() {
+        new Thread(() -> {
+            try {
+                var data = itemDAO.getAll();
+                javafx.application.Platform.runLater(() -> {
+                    itemList.setAll(data);
+                });
+            } catch (Exception e) {
+                System.err.println("Error loading items: " + e.getMessage());
+            }
+        }).start();
+    }
+
+    private void loadDamaged() {
+        new Thread(() -> {
+            try {
+                var data = damagedDAO.getAll();
+                javafx.application.Platform.runLater(() -> {
+                    damagedList.setAll(data);
+                });
+            } catch (Exception e) {
+                System.err.println("Error loading damaged items: " + e.getMessage());
+            }
+        }).start();
+    }
+
+    private void loadRentItems() {
+        new Thread(() -> {
+            try {
+                var data = rentItemDAO.getAll();
+                javafx.application.Platform.runLater(() -> {
+                    rentItemList.setAll(data);
+                });
+            } catch (Exception e) {
+                System.err.println("Error loading rent items: " + e.getMessage());
+            }
+        }).start();
+    }
+
+    private void loadRents() {
+        new Thread(() -> {
+            try {
+                var data = rentDAO.getAll();
+                javafx.application.Platform.runLater(() -> {
+                    rentList.setAll(data);
+                });
+            } catch (Exception e) {
+                System.err.println("Error loading rents: " + e.getMessage());
+            }
+        }).start();
+    }
+
+    // ========== SAVE METHODS ==========
+    private void saveItem(InventoryItem item, InventoryItem existing, Object... formFields) {
+        new Thread(() -> {
+            boolean ok = false;
+            try {
+                if (existing == null) {
+                    Long id = itemDAO.create(item);
+                    ok = id != null;
+                    if (ok) {
+                        System.out.println("Item created successfully with ID: " + id);
+                    } else {
+                        System.err.println("Item creation returned null ID");
+                    }
+                } else {
+                    ok = itemDAO.update(item);
+                    if (ok) {
+                        System.out.println("Item updated successfully");
+                    } else {
+                        System.err.println("Item update returned false");
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error saving item: " + e.getMessage());
+                e.printStackTrace();
+            }
+
+            final boolean success = ok;
+            javafx.application.Platform.runLater(() -> {
+                if (success) {
+                    // Clear form only if this is a new item (existing == null) and we have form
+                    // fields
+                    if (existing == null && formFields.length >= 8) {
+                        // Determine the actual number of form field components (excluding scrollPane
+                        // and addBtn if present)
+                        int fieldCount = (formFields.length >= 10) ? 8 : formFields.length;
+
+                        if (formFields[0] instanceof TextField)
+                            ((TextField) formFields[0]).clear(); // itemNameField
+                        if (fieldCount > 1 && formFields[1] instanceof TextField)
+                            ((TextField) formFields[1]).clear(); // skuField
+                        if (fieldCount > 2 && formFields[2] instanceof TextField)
+                            ((TextField) formFields[2]).clear(); // quantityField
+                        if (fieldCount > 3 && formFields[3] instanceof TextField)
+                            ((TextField) formFields[3]).clear(); // locationField
+                        if (fieldCount > 4 && formFields[4] instanceof DatePicker)
+                            ((DatePicker) formFields[4]).setValue(null); // purchaseDatePicker
+                        if (fieldCount > 5 && formFields[5] instanceof TextField)
+                            ((TextField) formFields[5]).clear(); // supplierField
+                        if (fieldCount > 6 && formFields[6] instanceof TextField)
+                            ((TextField) formFields[6]).clear(); // valueField
+                        if (fieldCount > 7 && formFields[7] instanceof TextArea)
+                            ((TextArea) formFields[7]).clear(); // notesField
+                    }
+
+                    // Hide form and show Add button if this is a new item (existing == null) and we
+                    // have the required fields
+                    if (existing == null && formFields.length >= 10) {
+                        // Last two fields should be scrollPane and addBtn
+                        Object scrollPaneObj = formFields[formFields.length - 2];
+                        Object addBtnObj = formFields[formFields.length - 1];
+                        if (scrollPaneObj instanceof ScrollPane && addBtnObj instanceof Button) {
+                            ScrollPane formScrollPane = (ScrollPane) scrollPaneObj;
+                            Button addButton = (Button) addBtnObj;
+                            formScrollPane.setVisible(false);
+                            formScrollPane.setManaged(false);
+                            addButton.setVisible(true);
+                            addButton.setManaged(true);
+                        }
+                    }
+
+                    // Add small delay to ensure database commit completes
+                    Duration delay = Duration.millis(100);
+                    PauseTransition pause = new PauseTransition(delay);
+                    pause.setOnFinished(e -> {
+                        loadItems();
+                        // Use Platform.runLater to show alert outside animation processing
+                        javafx.application.Platform.runLater(() -> {
+                            if (existing == null) {
+                                new Alert(Alert.AlertType.INFORMATION, "Item saved successfully!", ButtonType.OK)
+                                        .showAndWait();
+                            } else {
+                                new Alert(Alert.AlertType.INFORMATION, "Item updated successfully!", ButtonType.OK)
+                                        .showAndWait();
+                            }
+                        });
+                    });
+                    pause.play();
+                } else {
+                    new Alert(Alert.AlertType.ERROR, "Save failed. Please check the console for details.",
+                            ButtonType.OK).showAndWait();
+                }
+            });
+        }).start();
+    }
+
+    private void saveDamagedItem(DamagedItem damaged, Object... additionalParams) {
+        new Thread(() -> {
+            final boolean isUpdate = additionalParams.length > 0 && additionalParams[0] instanceof DamagedItem;
+            final boolean ok;
+            if (isUpdate) {
+                // This is an update
+                DamagedItem existing = (DamagedItem) additionalParams[0];
+                ok = damagedDAO.update(damaged);
+            } else {
+                // This is a new item
+                ok = damagedDAO.create(damaged) != null;
+            }
+
+            final boolean success = ok;
+            final boolean isUpdateFlag = isUpdate;
+            javafx.application.Platform.runLater(() -> {
+                if (success) {
+                    // Hide form and show Add button if we have the required parameters (and it's a
+                    // new item)
+                    if (additionalParams.length >= 2 && !isUpdateFlag) {
+                        Object scrollPaneObj = additionalParams[0];
+                        Object addBtnObj = additionalParams[1];
+                        if (scrollPaneObj instanceof ScrollPane && addBtnObj instanceof Button) {
+                            ScrollPane formScrollPane = (ScrollPane) scrollPaneObj;
+                            Button addButton = (Button) addBtnObj;
+                            formScrollPane.setVisible(false);
+                            formScrollPane.setManaged(false);
+                            addButton.setVisible(true);
+                            addButton.setManaged(true);
+                        }
+                    }
+
+                    loadDamaged();
+                    loadItems();
+                    if (isUpdateFlag) {
+                        new Alert(Alert.AlertType.INFORMATION, "Damaged item updated successfully!", ButtonType.OK)
+                                .showAndWait();
+                    } else {
+                        new Alert(Alert.AlertType.INFORMATION, "Damaged item recorded successfully!", ButtonType.OK)
+                                .showAndWait();
+                    }
+                } else {
+                    new Alert(Alert.AlertType.ERROR, "Save failed", ButtonType.OK).showAndWait();
+                }
+            });
+        }).start();
+    }
+
+    private void saveRentItem(RentItem rentItem, RentItem existing, Object... additionalParams) {
+        new Thread(() -> {
+            boolean ok;
+            if (existing == null) {
+                ok = rentItemDAO.create(rentItem) != null;
+            } else {
+                ok = rentItemDAO.update(rentItem);
+            }
+            javafx.application.Platform.runLater(() -> {
+                if (ok) {
+                    // Hide form and show Add button if this is a new rent item (existing == null)
+                    // and we have the required parameters
+                    if (existing == null && additionalParams.length >= 2) {
+                        Object scrollPaneObj = additionalParams[0];
+                        Object addBtnObj = additionalParams[1];
+                        if (scrollPaneObj instanceof ScrollPane && addBtnObj instanceof Button) {
+                            ScrollPane formScrollPane = (ScrollPane) scrollPaneObj;
+                            Button addButton = (Button) addBtnObj;
+                            formScrollPane.setVisible(false);
+                            formScrollPane.setManaged(false);
+                            addButton.setVisible(true);
+                            addButton.setManaged(true);
+                        }
+                    }
+
+                    loadRentItems();
+                    if (existing == null) {
+                        new Alert(Alert.AlertType.INFORMATION, "Rent item saved successfully!", ButtonType.OK)
+                                .showAndWait();
+                    } else {
+                        new Alert(Alert.AlertType.INFORMATION, "Rent item updated successfully!", ButtonType.OK)
+                                .showAndWait();
+                    }
+                } else {
+                    new Alert(Alert.AlertType.ERROR, "Save failed", ButtonType.OK).showAndWait();
+                }
+            });
+        }).start();
+    }
+
+    private void saveRent(Rent rent, Rent existing, Object... formFields) {
+        new Thread(() -> {
+            boolean ok = false;
+            try {
+                if (existing == null) {
+                    Long id = rentDAO.create(rent);
+                    ok = id != null;
+                    if (ok) {
+                        System.out.println("Rent created successfully with ID: " + id);
+                    } else {
+                        System.err.println("Rent creation returned null ID");
+                    }
+                } else {
+                    ok = rentDAO.update(rent);
+                    if (ok) {
+                        System.out.println("Rent updated successfully");
+                    } else {
+                        System.err.println("Rent update returned false");
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error saving rent: " + e.getMessage());
+                e.printStackTrace();
+            }
+
+            final boolean success = ok;
+            javafx.application.Platform.runLater(() -> {
+                if (success) {
+                    // Clear form only if this is a new rent (existing == null) and we have form
+                    // fields
+                    if (existing == null && formFields.length >= 9) {
+                        int fieldCount = formFields.length;
+                        if (formFields[0] instanceof ComboBox)
+                            ((ComboBox<?>) formFields[0]).getSelectionModel().clearSelection(); // rentItemCombo
+                        if (formFields[1] instanceof TextField)
+                            ((TextField) formFields[1]).clear(); // renterNameField
+                        if (formFields[2] instanceof TextField)
+                            ((TextField) formFields[2]).clear(); // renterMobileField
+                        if (formFields[3] instanceof DatePicker)
+                            ((DatePicker) formFields[3]).setValue(null); // startDatePicker
+                        if (formFields[4] instanceof DatePicker)
+                            ((DatePicker) formFields[4]).setValue(null); // endDatePicker
+                        if (formFields[5] instanceof TextField)
+                            ((TextField) formFields[5]).clear(); // amountField
+                        if (formFields[6] instanceof TextField)
+                            ((TextField) formFields[6]).clear(); // depositField
+                        if (formFields[7] instanceof ComboBox)
+                            ((ComboBox<String>) formFields[7]).setValue("BOOKED"); // statusCombo
+                    }
+
+                    // Add small delay to ensure database commit completes
+                    Duration delay = Duration.millis(100);
+                    PauseTransition pause = new PauseTransition(delay);
+                    pause.setOnFinished(e -> {
+                        loadRents();
+                        loadRentItems();
+                        loadItems();
+                        // Use Platform.runLater to show alert outside animation processing
+                        javafx.application.Platform.runLater(() -> {
+                            if (existing == null) {
+                                new Alert(Alert.AlertType.INFORMATION, "Rent saved successfully!", ButtonType.OK)
+                                        .showAndWait();
+                            } else {
+                                new Alert(Alert.AlertType.INFORMATION, "Rent updated successfully!", ButtonType.OK)
+                                        .showAndWait();
+                            }
+                        });
+                    });
+                    pause.play();
+                } else {
+                    new Alert(Alert.AlertType.ERROR, "Save failed. Please check the console for details.",
+                            ButtonType.OK).showAndWait();
+                }
+            });
+        }).start();
+    }
+
+    // ========== DELETE METHODS ==========
+    private void deleteItem(InventoryItem item) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Delete this item?", ButtonType.OK, ButtonType.CANCEL);
+        confirm.showAndWait().ifPresent(btn -> {
+            if (btn == ButtonType.OK) {
+                new Thread(() -> {
+                    boolean ok = itemDAO.delete(item.getId());
+                    javafx.application.Platform.runLater(() -> {
+                        if (ok) {
+                            loadItems();
+                            new Alert(Alert.AlertType.INFORMATION, "Item deleted successfully!", ButtonType.OK)
+                                    .showAndWait();
+                        } else {
+                            new Alert(Alert.AlertType.ERROR, "Delete failed", ButtonType.OK).showAndWait();
+                        }
+                    });
+                }).start();
+            }
+        });
+    }
+
+    private void deleteDamagedItem(DamagedItem damaged) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Delete this damaged item?", ButtonType.OK,
+                ButtonType.CANCEL);
+        confirm.showAndWait().ifPresent(btn -> {
+            if (btn == ButtonType.OK) {
+                new Thread(() -> {
+                    boolean ok = damagedDAO.delete(damaged.getId());
+                    javafx.application.Platform.runLater(() -> {
+                        if (ok) {
+                            loadDamaged();
+                            loadItems();
+                            new Alert(Alert.AlertType.INFORMATION, "Damaged item deleted successfully!", ButtonType.OK)
+                                    .showAndWait();
+                        } else {
+                            new Alert(Alert.AlertType.ERROR, "Delete failed", ButtonType.OK).showAndWait();
+                        }
+                    });
+                }).start();
+            }
+        });
+    }
+
+    private void deleteRentItem(RentItem rentItem) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Delete this rent item?", ButtonType.OK,
+                ButtonType.CANCEL);
+        confirm.showAndWait().ifPresent(btn -> {
+            if (btn == ButtonType.OK) {
+                new Thread(() -> {
+                    boolean ok = rentItemDAO.delete(rentItem.getId());
+                    javafx.application.Platform.runLater(() -> {
+                        if (ok) {
+                            loadRentItems();
+                            new Alert(Alert.AlertType.INFORMATION, "Rent item deleted successfully!", ButtonType.OK)
+                                    .showAndWait();
+                        } else {
+                            new Alert(Alert.AlertType.ERROR, "Delete failed", ButtonType.OK).showAndWait();
+                        }
+                    });
+                }).start();
+            }
+        });
+    }
+
+    private void deleteRent(Rent rent) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Delete this rent?", ButtonType.OK, ButtonType.CANCEL);
+        confirm.showAndWait().ifPresent(btn -> {
+            if (btn == ButtonType.OK) {
+                new Thread(() -> {
+                    boolean ok = rentDAO.delete(rent.getId());
+                    javafx.application.Platform.runLater(() -> {
+                        if (ok) {
+                            loadRents();
+                            loadRentItems();
+                            loadItems();
+                            new Alert(Alert.AlertType.INFORMATION, "Rent deleted successfully!", ButtonType.OK)
+                                    .showAndWait();
+                        } else {
+                            new Alert(Alert.AlertType.ERROR, "Delete failed", ButtonType.OK).showAndWait();
+                        }
+                    });
+                }).start();
+            }
+        });
+    }
+
+    // ========== EDIT DIALOGS ==========
+    private void showEditItemDialog(InventoryItem item) {
+        Stage dialog = new Stage();
+        dialog.setTitle("Edit Item");
+
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background: transparent;");
+
+        VBox form = new VBox(12);
+        form.setSpacing(12);
+        form.setPadding(new Insets(12, 12, 16, 12));
+        form.setStyle("-fx-background-color: #ffffff;");
+
+        Label title = FormStyler.createFormLabel("Edit Item");
+        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + StyleHelper.TEXT_GRAY_900 + ";");
+
+        String fieldStyle = "-fx-background-color: #ffffff; -fx-background-radius: 8; -fx-border-radius: 8; "
+                + "-fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 8 12; -fx-font-size: 12px;";
+        String focusStyle = "-fx-background-color: #ffffff; -fx-background-radius: 8; -fx-border-radius: 8; "
+                + "-fx-border-color: #2563eb; -fx-border-width: 2; -fx-padding: 8 12; -fx-font-size: 12px;";
+        String datePickerStyle = fieldStyle;
+        String datePickerFocusStyle = focusStyle;
+
+        TextField itemNameField = new TextField(item.getItemName());
+        itemNameField.setPromptText("Item Name *");
+        itemNameField.setPrefHeight(32);
+        itemNameField.setStyle(fieldStyle);
+        itemNameField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> itemNameField.setStyle(newVal ? focusStyle : fieldStyle));
+
+        TextField skuField = new TextField(item.getSkuCode());
+        skuField.setPromptText("SKU / Code");
+        skuField.setPrefHeight(32);
+        skuField.setStyle(fieldStyle);
+        skuField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> skuField.setStyle(newVal ? focusStyle : fieldStyle));
+
+        TextField quantityField = new TextField(item.getQuantity() != null ? item.getQuantity().toString() : "0");
+        quantityField.setPromptText("Quantity");
+        quantityField.setPrefHeight(32);
+        quantityField.setStyle(fieldStyle);
+        quantityField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> quantityField.setStyle(newVal ? focusStyle : fieldStyle));
+        quantityField.setTextFormatter(new javafx.scene.control.TextFormatter<>(change -> {
+            String text = change.getText();
+            if (text.matches("[0-9]*")) {
+                return change;
+            }
+            return null;
+        }));
+
+        TextField locationField = new TextField(item.getLocation());
+        locationField.setPromptText("Location");
+        locationField.setPrefHeight(32);
+        locationField.setStyle(fieldStyle);
+        locationField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> locationField.setStyle(newVal ? focusStyle : fieldStyle));
+
+        DatePicker purchaseDatePicker = new DatePicker(item.getPurchaseDate());
+        purchaseDatePicker.setPromptText("Purchase Date");
+        purchaseDatePicker.setPrefHeight(32);
+        purchaseDatePicker.setStyle(datePickerStyle);
+        purchaseDatePicker.focusedProperty().addListener(
+                (obs, oldVal, newVal) -> purchaseDatePicker.setStyle(newVal ? datePickerFocusStyle : datePickerStyle));
+        styleDatePickerPopup(purchaseDatePicker);
+
+        TextField supplierField = new TextField(item.getSupplier());
+        supplierField.setPromptText("Supplier");
+        supplierField.setPrefHeight(32);
+        supplierField.setStyle(fieldStyle);
+        supplierField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> supplierField.setStyle(newVal ? focusStyle : fieldStyle));
+
+        TextField valueField = new TextField(item.getValue() != null ? item.getValue().toString() : "");
+        valueField.setPromptText("Value");
+        valueField.setPrefHeight(32);
+        valueField.setStyle(fieldStyle);
+        valueField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> valueField.setStyle(newVal ? focusStyle : fieldStyle));
+        valueField.setTextFormatter(new javafx.scene.control.TextFormatter<>(change -> {
+            String text = change.getText();
+            if (text.matches("[0-9]*\\.?[0-9]*")) {
+                return change;
+            }
+            return null;
+        }));
+
+        TextArea notesField = new TextArea(item.getNotes());
+        notesField.setPromptText("Notes");
+        notesField.setPrefRowCount(3);
+        notesField.setStyle(fieldStyle);
+        notesField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> notesField.setStyle(newVal ? focusStyle : fieldStyle));
+
+        Button save = new Button("Update");
+        save.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        save.setOnMouseEntered(e -> save.setStyle(
+                "-fx-background-color: #1d4ed8; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        save.setOnMouseExited(e -> save.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        save.setOnAction(e -> {
+            item.setItemName(itemNameField.getText());
+            item.setSkuCode(skuField.getText());
+            try {
+                item.setQuantity(quantityField.getText().isEmpty() ? 0 : Integer.parseInt(quantityField.getText()));
+            } catch (NumberFormatException ex) {
+                item.setQuantity(0);
+            }
+            item.setLocation(locationField.getText());
+            item.setPurchaseDate(purchaseDatePicker.getValue());
+            item.setSupplier(supplierField.getText());
+            try {
+                if (!valueField.getText().isEmpty()) {
+                    item.setValue(new BigDecimal(valueField.getText()));
+                } else {
+                    item.setValue(null);
+                }
+            } catch (NumberFormatException ex) {
+                item.setValue(null);
+            }
+            item.setNotes(notesField.getText());
+
+            saveItem(item, item, itemNameField, skuField, quantityField, locationField,
+                    purchaseDatePicker, supplierField, valueField, notesField);
+            dialog.close();
+        });
+
+        Button cancel = new Button("Cancel");
+        cancel.setStyle(
+                "-fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        cancel.setOnMouseEntered(e -> cancel.setStyle(
+                "-fx-background-color: #dc2626; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        cancel.setOnMouseExited(e -> cancel.setStyle(
+                "-fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        cancel.setOnAction(e -> dialog.close());
+
+        HBox buttons = new HBox(10, cancel, save);
+        buttons.setAlignment(Pos.CENTER_RIGHT);
+        buttons.setPadding(new Insets(8, 0, 0, 0));
+
+        form.getChildren().setAll(
+                title,
+                FormStyler.createCompactFormField("Item Name *", itemNameField),
+                FormStyler.createCompactFormField("SKU / Code", skuField),
+                FormStyler.createCompactFormField("Quantity", quantityField),
+                FormStyler.createCompactFormField("Location", locationField),
+                FormStyler.createCompactFormField("Purchase Date", purchaseDatePicker),
+                FormStyler.createCompactFormField("Supplier", supplierField),
+                FormStyler.createCompactFormField("Value", valueField),
+                FormStyler.createCompactFormField("Notes", notesField),
+                buttons);
+
+        scrollPane.setContent(form);
+        Scene scene = new Scene(scrollPane, 500, 500);
+        dialog.setScene(scene);
+        dialog.show();
+    }
+
+    private void showEditDamagedItemDialog(DamagedItem damaged) {
+        Stage dialog = new Stage();
+        dialog.setTitle("Edit Damaged Item");
+
+        VBox form = new VBox(12);
+        form.setSpacing(12);
+        form.setPadding(new Insets(12, 12, 12, 12));
+        form.setStyle("-fx-background-color: #ffffff;");
+
+        Label title = FormStyler.createFormLabel("Edit Damaged Item");
+        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + StyleHelper.TEXT_GRAY_900 + ";");
+
+        String fieldStyle = "-fx-background-color: #ffffff; -fx-background-radius: 8; -fx-border-radius: 8; "
+                + "-fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 8 12; -fx-font-size: 12px;";
+        String focusStyle = "-fx-background-color: #ffffff; -fx-background-radius: 8; -fx-border-radius: 8; "
+                + "-fx-border-color: #2563eb; -fx-border-width: 2; -fx-padding: 8 12; -fx-font-size: 12px;";
+        String datePickerStyle = fieldStyle;
+        String datePickerFocusStyle = focusStyle;
+
+        ComboBox<InventoryItem> itemCombo = new ComboBox<>();
+        itemCombo.setItems(itemList);
+        itemCombo.setPrefHeight(32);
+        itemCombo.setStyle(fieldStyle);
+        itemCombo.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> itemCombo.setStyle(newVal ? focusStyle : fieldStyle));
+        for (InventoryItem item : itemList) {
+            if (item.getId().equals(damaged.getInventoryItemId())) {
+                itemCombo.setValue(item);
+                break;
+            }
+        }
+        itemCombo.setCellFactory(listView -> new ListCell<InventoryItem>() {
+            @Override
+            protected void updateItem(InventoryItem item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getItemName() + " (Qty: " + (item.getQuantity() != null ? item.getQuantity() : 0)
+                            + ")");
+                }
+            }
+        });
+        itemCombo.setButtonCell(new ListCell<InventoryItem>() {
+            @Override
+            protected void updateItem(InventoryItem item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText("Select Item");
+                } else {
+                    setText(item.getItemName());
+                }
+            }
+        });
+
+        TextField quantityField = new TextField(damaged.getQuantity() != null ? damaged.getQuantity().toString() : "0");
+        quantityField.setPromptText("Quantity");
+        quantityField.setPrefHeight(32);
+        quantityField.setStyle(fieldStyle);
+        quantityField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> quantityField.setStyle(newVal ? focusStyle : fieldStyle));
+        quantityField.setTextFormatter(new javafx.scene.control.TextFormatter<>(change -> {
+            String text = change.getText();
+            if (text.matches("[0-9]*")) {
+                return change;
+            }
+            return null;
+        }));
+
+        DatePicker damageDatePicker = new DatePicker(
+                damaged.getDamageDate() != null ? damaged.getDamageDate() : LocalDate.now());
+        damageDatePicker.setPromptText("Damage Date");
+        damageDatePicker.setPrefHeight(32);
+        damageDatePicker.setStyle(datePickerStyle);
+        damageDatePicker.focusedProperty().addListener(
+                (obs, oldVal, newVal) -> damageDatePicker.setStyle(newVal ? datePickerFocusStyle : datePickerStyle));
+        styleDatePickerPopup(damageDatePicker);
+
+        TextArea reasonField = new TextArea(damaged.getReason());
+        reasonField.setPromptText("Reason");
+        reasonField.setPrefRowCount(3);
+        reasonField.setStyle(fieldStyle);
+        reasonField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> reasonField.setStyle(newVal ? focusStyle : fieldStyle));
+
+        Button save = new Button("Update");
+        save.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        save.setOnMouseEntered(e -> save.setStyle(
+                "-fx-background-color: #1d4ed8; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        save.setOnMouseExited(e -> save.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        save.setOnAction(e -> {
+            if (itemCombo.getValue() == null) {
+                new Alert(Alert.AlertType.WARNING, "Inventory Item is required", ButtonType.OK).showAndWait();
+                return;
+            }
+
+            damaged.setInventoryItemId(itemCombo.getValue().getId());
+            try {
+                damaged.setQuantity(quantityField.getText().isEmpty() ? 0 : Integer.parseInt(quantityField.getText()));
+            } catch (NumberFormatException ex) {
+                damaged.setQuantity(0);
+            }
+            damaged.setDamageDate(damageDatePicker.getValue());
+            damaged.setReason(reasonField.getText().trim().isEmpty() ? null : reasonField.getText().trim());
+
+            saveDamagedItem(damaged, damaged);
+            dialog.close();
+        });
+
+        Button cancel = new Button("Cancel");
+        cancel.setStyle(
+                "-fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        cancel.setOnMouseEntered(e -> cancel.setStyle(
+                "-fx-background-color: #dc2626; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        cancel.setOnMouseExited(e -> cancel.setStyle(
+                "-fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        cancel.setOnAction(e -> dialog.close());
+
+        HBox buttons = new HBox(10, cancel, save);
+        buttons.setAlignment(Pos.CENTER_RIGHT);
+        buttons.setPadding(new Insets(8, 0, 0, 0));
+
+        form.getChildren().setAll(
+                title,
+                FormStyler.createCompactFormField("Inventory Item *", itemCombo),
+                FormStyler.createCompactFormField("Quantity", quantityField),
+                FormStyler.createCompactFormField("Damage Date", damageDatePicker),
+                FormStyler.createCompactFormField("Reason", reasonField),
+                buttons);
+
+        Scene scene = new Scene(form);
+        scene.setFill(javafx.scene.paint.Color.WHITE);
+        dialog.setScene(scene);
+        dialog.sizeToScene();
+        dialog.show();
+    }
+
+    private void showEditRentItemDialog(RentItem rentItem) {
+        Stage dialog = new Stage();
+        dialog.setTitle("Edit Rent Item");
+
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background: transparent;");
+
+        VBox form = new VBox(12);
+        form.setSpacing(12);
+        form.setPadding(new Insets(12, 12, 16, 12));
+        form.setStyle("-fx-background-color: #ffffff;");
+
+        Label title = FormStyler.createFormLabel("Edit Rent Item");
+        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + StyleHelper.TEXT_GRAY_900 + ";");
+
+        String fieldStyle = "-fx-background-color: #ffffff; -fx-background-radius: 8; -fx-border-radius: 8; "
+                + "-fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 8 12; -fx-font-size: 12px;";
+        String focusStyle = "-fx-background-color: #ffffff; -fx-background-radius: 8; -fx-border-radius: 8; "
+                + "-fx-border-color: #2563eb; -fx-border-width: 2; -fx-padding: 8 12; -fx-font-size: 12px;";
+
+        ComboBox<InventoryItem> itemCombo = new ComboBox<>();
+        itemCombo.setItems(itemList);
+        itemCombo.setPrefHeight(32);
+        itemCombo.setStyle(fieldStyle);
+        itemCombo.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> itemCombo.setStyle(newVal ? focusStyle : fieldStyle));
+        for (InventoryItem item : itemList) {
+            if (item.getId().equals(rentItem.getInventoryItemId())) {
+                itemCombo.setValue(item);
+                break;
+            }
+        }
+        itemCombo.setCellFactory(listView -> new ListCell<InventoryItem>() {
+            @Override
+            protected void updateItem(InventoryItem item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getItemName());
+                }
+            }
+        });
+
+        TextField rateField = new TextField(
+                rentItem.getRatePerDay() != null ? rentItem.getRatePerDay().toString() : "");
+        rateField.setPromptText("Rate per Day");
+        rateField.setPrefHeight(32);
+        rateField.setStyle(fieldStyle);
+        rateField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> rateField.setStyle(newVal ? focusStyle : fieldStyle));
+        rateField.setTextFormatter(new javafx.scene.control.TextFormatter<>(change -> {
+            String text = change.getText();
+            if (text.matches("[0-9]*\\.?[0-9]*")) {
+                return change;
+            }
+            return null;
+        }));
+
+        TextField depositField = new TextField(rentItem.getDeposit() != null ? rentItem.getDeposit().toString() : "");
+        depositField.setPromptText("Deposit");
+        depositField.setPrefHeight(32);
+        depositField.setStyle(fieldStyle);
+        depositField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> depositField.setStyle(newVal ? focusStyle : fieldStyle));
+        depositField.setTextFormatter(new javafx.scene.control.TextFormatter<>(change -> {
+            String text = change.getText();
+            if (text.matches("[0-9]*\\.?[0-9]*")) {
+                return change;
+            }
+            return null;
+        }));
+
+        ComboBox<String> availableCombo = new ComboBox<>();
+        availableCombo.getItems().addAll("Available", "Not Available");
+        availableCombo
+                .setValue(rentItem.getAvailable() != null && rentItem.getAvailable() ? "Available" : "Not Available");
+        availableCombo.setPrefHeight(32);
+        availableCombo.setStyle(fieldStyle);
+        availableCombo.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> availableCombo.setStyle(newVal ? focusStyle : fieldStyle));
+
+        Button save = new Button("Update");
+        save.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        save.setOnMouseEntered(e -> save.setStyle(
+                "-fx-background-color: #1d4ed8; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        save.setOnMouseExited(e -> save.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        save.setOnAction(e -> {
+            if (itemCombo.getValue() != null) {
+                rentItem.setInventoryItemId(itemCombo.getValue().getId());
+            }
+            try {
+                if (!rateField.getText().isEmpty()) {
+                    rentItem.setRatePerDay(new BigDecimal(rateField.getText()));
+                } else {
+                    rentItem.setRatePerDay(null);
+                }
+            } catch (NumberFormatException ex) {
+                rentItem.setRatePerDay(null);
+            }
+            try {
+                if (!depositField.getText().isEmpty()) {
+                    rentItem.setDeposit(new BigDecimal(depositField.getText()));
+                } else {
+                    rentItem.setDeposit(null);
+                }
+            } catch (NumberFormatException ex) {
+                rentItem.setDeposit(null);
+            }
+            rentItem.setAvailable("Available".equals(availableCombo.getValue()));
+
+            saveRentItem(rentItem, rentItem);
+            dialog.close();
+        });
+
+        Button cancel = new Button("Cancel");
+        cancel.setStyle(
+                "-fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        cancel.setOnMouseEntered(e -> cancel.setStyle(
+                "-fx-background-color: #dc2626; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        cancel.setOnMouseExited(e -> cancel.setStyle(
+                "-fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        cancel.setOnAction(e -> dialog.close());
+
+        HBox buttons = new HBox(10, cancel, save);
+        buttons.setAlignment(Pos.CENTER_RIGHT);
+        buttons.setPadding(new Insets(8, 0, 0, 0));
+
+        form.getChildren().setAll(
+                title,
+                FormStyler.createCompactFormField("Item *", itemCombo),
+                FormStyler.createCompactFormField("Rate / Day", rateField),
+                FormStyler.createCompactFormField("Deposit", depositField),
+                FormStyler.createCompactFormField("Availability", availableCombo),
+                buttons);
+
+        scrollPane.setContent(form);
+        Scene scene = new Scene(scrollPane, 500, 400);
+        dialog.setScene(scene);
+        dialog.show();
+    }
+
+    private void showEditRentDialog(Rent rent) {
+        Stage dialog = new Stage();
+        dialog.setTitle("Edit Rent");
+
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background: transparent;");
+
+        VBox form = new VBox(12);
+        form.setSpacing(12);
+        form.setPadding(new Insets(12, 12, 16, 12));
+        form.setStyle("-fx-background-color: #ffffff;");
+
+        Label title = FormStyler.createFormLabel("Edit Rent");
+        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + StyleHelper.TEXT_GRAY_900 + ";");
+
+        String fieldStyle = "-fx-background-color: #ffffff; -fx-background-radius: 8; -fx-border-radius: 8; "
+                + "-fx-border-color: #d1d5db; -fx-border-width: 1; -fx-padding: 8 12; -fx-font-size: 12px;";
+        String focusStyle = "-fx-background-color: #ffffff; -fx-background-radius: 8; -fx-border-radius: 8; "
+                + "-fx-border-color: #2563eb; -fx-border-width: 2; -fx-padding: 8 12; -fx-font-size: 12px;";
+        String datePickerStyle = fieldStyle;
+        String datePickerFocusStyle = focusStyle;
+
+        ComboBox<RentItem> rentItemCombo = new ComboBox<>();
+        rentItemCombo.setItems(rentItemList);
+        rentItemCombo.setPrefHeight(32);
+        rentItemCombo.setStyle(fieldStyle);
+        rentItemCombo.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> rentItemCombo.setStyle(newVal ? focusStyle : fieldStyle));
+        for (RentItem item : rentItemList) {
+            if (item.getId().equals(rent.getRentItemId())) {
+                rentItemCombo.setValue(item);
+                break;
+            }
+        }
+        rentItemCombo.setCellFactory(listView -> new ListCell<RentItem>() {
+            @Override
+            protected void updateItem(RentItem item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.getInventoryItemName());
+                }
+            }
+        });
+
+        TextField renterNameField = new TextField(rent.getRenterName());
+        renterNameField.setPromptText("Renter Name");
+        renterNameField.setPrefHeight(32);
+        renterNameField.setStyle(fieldStyle);
+        renterNameField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> renterNameField.setStyle(newVal ? focusStyle : fieldStyle));
+
+        TextField renterMobileField = new TextField(rent.getRenterMobile());
+        renterMobileField.setPromptText("Renter Mobile");
+        renterMobileField.setPrefHeight(32);
+        renterMobileField.setStyle(fieldStyle);
+        renterMobileField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> renterMobileField.setStyle(newVal ? focusStyle : fieldStyle));
+
+        DatePicker startDatePicker = new DatePicker(rent.getRentStartDate());
+        startDatePicker.setPromptText("Rent Start");
+        startDatePicker.setPrefHeight(32);
+        startDatePicker.setStyle(datePickerStyle);
+        startDatePicker.focusedProperty().addListener(
+                (obs, oldVal, newVal) -> startDatePicker.setStyle(newVal ? datePickerFocusStyle : datePickerStyle));
+        styleDatePickerPopup(startDatePicker);
+
+        DatePicker endDatePicker = new DatePicker(rent.getRentEndDate());
+        endDatePicker.setPromptText("Rent End");
+        endDatePicker.setPrefHeight(32);
+        endDatePicker.setStyle(datePickerStyle);
+        endDatePicker.focusedProperty().addListener(
+                (obs, oldVal, newVal) -> endDatePicker.setStyle(newVal ? datePickerFocusStyle : datePickerStyle));
+        styleDatePickerPopup(endDatePicker);
+
+        TextField amountField = new TextField(rent.getAmount() != null ? rent.getAmount().toString() : "");
+        amountField.setPromptText("Amount");
+        amountField.setPrefHeight(32);
+        amountField.setStyle(fieldStyle);
+        amountField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> amountField.setStyle(newVal ? focusStyle : fieldStyle));
+        amountField.setTextFormatter(new javafx.scene.control.TextFormatter<>(change -> {
+            String text = change.getText();
+            if (text.matches("[0-9]*\\.?[0-9]*")) {
+                return change;
+            }
+            return null;
+        }));
+
+        TextField depositField = new TextField(rent.getDeposit() != null ? rent.getDeposit().toString() : "");
+        depositField.setPromptText("Deposit");
+        depositField.setPrefHeight(32);
+        depositField.setStyle(fieldStyle);
+        depositField.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> depositField.setStyle(newVal ? focusStyle : fieldStyle));
+        depositField.setTextFormatter(new javafx.scene.control.TextFormatter<>(change -> {
+            String text = change.getText();
+            if (text.matches("[0-9]*\\.?[0-9]*")) {
+                return change;
+            }
+            return null;
+        }));
+
+        ComboBox<String> statusCombo = new ComboBox<>();
+        statusCombo.getItems().addAll("BOOKED", "RETURNED");
+        statusCombo.setValue(rent.getStatus() != null ? rent.getStatus() : "BOOKED");
+        statusCombo.setPrefHeight(32);
+        statusCombo.setStyle(fieldStyle);
+        statusCombo.focusedProperty()
+                .addListener((obs, oldVal, newVal) -> statusCombo.setStyle(newVal ? focusStyle : fieldStyle));
+
+        Button save = new Button("Update");
+        save.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        save.setOnMouseEntered(e -> save.setStyle(
+                "-fx-background-color: #1d4ed8; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        save.setOnMouseExited(e -> save.setStyle(
+                "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        save.setOnAction(e -> {
+            // Get and trim all field values
+            String renterName = renterNameField.getText().trim();
+            String renterMobile = renterMobileField.getText().trim();
+            String amount = amountField.getText().trim();
+            String deposit = depositField.getText().trim();
+
+            // Validate that at least one field has a value
+            boolean allEmpty = renterName.isEmpty() && renterMobile.isEmpty() && amount.isEmpty() &&
+                    deposit.isEmpty() && startDatePicker.getValue() == null &&
+                    endDatePicker.getValue() == null && rentItemCombo.getValue() == null;
+
+            if (allEmpty) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Validation Error");
+                alert.setContentText(
+                        "Please fill at least one field before saving. Cannot create a record with all empty fields.");
+                alert.showAndWait();
+                return;
+            }
+
+            // Convert empty strings to null to prevent blank values in database
+            if (rentItemCombo.getValue() != null) {
+                rent.setRentItemId(rentItemCombo.getValue().getId());
+            }
+            rent.setRenterName(renterName.isEmpty() ? null : renterName);
+            rent.setRenterMobile(renterMobile.isEmpty() ? null : renterMobile);
+            rent.setRentStartDate(startDatePicker.getValue());
+            rent.setRentEndDate(endDatePicker.getValue());
+            try {
+                if (!amount.isEmpty()) {
+                    rent.setAmount(new BigDecimal(amount));
+                } else {
+                    rent.setAmount(null);
+                }
+            } catch (NumberFormatException ex) {
+                rent.setAmount(null);
+            }
+            try {
+                if (!deposit.isEmpty()) {
+                    rent.setDeposit(new BigDecimal(deposit));
+                } else {
+                    rent.setDeposit(null);
+                }
+            } catch (NumberFormatException ex) {
+                rent.setDeposit(null);
+            }
+            rent.setStatus(statusCombo.getValue());
+
+            saveRent(rent, rent, rentItemCombo, renterNameField, renterMobileField,
+                    startDatePicker, endDatePicker, amountField, depositField, statusCombo);
+            dialog.close();
+        });
+
+        Button cancel = new Button("Cancel");
+        cancel.setStyle(
+                "-fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;");
+        cancel.setOnMouseEntered(e -> cancel.setStyle(
+                "-fx-background-color: #dc2626; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        cancel.setOnMouseExited(e -> cancel.setStyle(
+                "-fx-background-color: #ef4444; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 6 14; -fx-cursor: hand;"));
+        cancel.setOnAction(e -> dialog.close());
+
+        HBox buttons = new HBox(10, cancel, save);
+        buttons.setAlignment(Pos.CENTER_RIGHT);
+        buttons.setPadding(new Insets(8, 0, 0, 0));
+
+        form.getChildren().setAll(
+                title,
+                FormStyler.createCompactFormField("Rent Item *", rentItemCombo),
+                FormStyler.createCompactFormField("Renter Name", renterNameField),
+                FormStyler.createCompactFormField("Renter Mobile", renterMobileField),
+                FormStyler.createCompactFormField("Rent Start", startDatePicker),
+                FormStyler.createCompactFormField("Rent End", endDatePicker),
+                FormStyler.createCompactFormField("Amount", amountField),
+                FormStyler.createCompactFormField("Deposit", depositField),
+                FormStyler.createCompactFormField("Status", statusCombo),
+                buttons);
+
+        scrollPane.setContent(form);
+        Scene scene = new Scene(scrollPane, 500, 500);
+        dialog.setScene(scene);
+        dialog.show();
+    }
+}

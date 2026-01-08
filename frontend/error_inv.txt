@@ -1,0 +1,464 @@
+src\com\mahal\controller\inventory\InventoryController.java:12: error: package com.mahal.database does not exist
+import com.mahal.database.InventoryItemDAO;
+                         ^
+src\com\mahal\controller\inventory\InventoryController.java:13: error: package com.mahal.database does not exist
+import com.mahal.database.DamagedItemDAO;
+                         ^
+src\com\mahal\controller\inventory\InventoryController.java:14: error: package com.mahal.database does not exist
+import com.mahal.database.RentItemDAO;
+                         ^
+src\com\mahal\controller\inventory\InventoryController.java:15: error: package com.mahal.database does not exist
+import com.mahal.database.RentDAO;
+                         ^
+src\com\mahal\controller\inventory\InventoryController.java:16: error: package com.mahal.model does not exist
+import com.mahal.model.InventoryItem;
+                      ^
+src\com\mahal\controller\inventory\InventoryController.java:17: error: package com.mahal.model does not exist
+import com.mahal.model.DamagedItem;
+                      ^
+src\com\mahal\controller\inventory\InventoryController.java:18: error: package com.mahal.model does not exist
+import com.mahal.model.RentItem;
+                      ^
+src\com\mahal\controller\inventory\InventoryController.java:19: error: package com.mahal.model does not exist
+import com.mahal.model.Rent;
+                      ^
+src\com\mahal\controller\inventory\InventoryController.java:20: error: package com.mahal.util does not exist
+import com.mahal.util.TableStyler;
+                     ^
+src\com\mahal\controller\inventory\InventoryController.java:21: error: package com.mahal.util does not exist
+import com.mahal.util.FormStyler;
+                     ^
+src\com\mahal\controller\inventory\InventoryController.java:22: error: package com.mahal.util does not exist
+import com.mahal.util.StyleHelper;
+                     ^
+src\com\mahal\controller\inventory\InventoryController.java:37: error: cannot find symbol
+    private InventoryItemDAO itemDAO;
+            ^
+  symbol:   class InventoryItemDAO
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:38: error: cannot find symbol
+    private DamagedItemDAO damagedDAO;
+            ^
+  symbol:   class DamagedItemDAO
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:39: error: cannot find symbol
+    private RentItemDAO rentItemDAO;
+            ^
+  symbol:   class RentItemDAO
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:40: error: cannot find symbol
+    private RentDAO rentDAO;
+            ^
+  symbol:   class RentDAO
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:42: error: cannot find symbol
+    private ObservableList<InventoryItem> itemList = FXCollections.observableArrayList();
+                           ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:43: error: cannot find symbol
+    private ObservableList<DamagedItem> damagedList = FXCollections.observableArrayList();
+                           ^
+  symbol:   class DamagedItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:44: error: cannot find symbol
+    private ObservableList<RentItem> rentItemList = FXCollections.observableArrayList();
+                           ^
+  symbol:   class RentItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:45: error: cannot find symbol
+    private ObservableList<Rent> rentList = FXCollections.observableArrayList();
+                           ^
+  symbol:   class Rent
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:515: error: cannot find symbol
+    private TableColumn<InventoryItem, String> createItemActionsColumn(TableView<InventoryItem> table) {
+                                                                                 ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:515: error: cannot find symbol
+    private TableColumn<InventoryItem, String> createItemActionsColumn(TableView<InventoryItem> table) {
+                        ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:812: error: cannot find symbol
+    private TableColumn<DamagedItem, String> createDamagedActionsColumn(TableView<DamagedItem> table) {
+                                                                                  ^
+  symbol:   class DamagedItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:812: error: cannot find symbol
+    private TableColumn<DamagedItem, String> createDamagedActionsColumn(TableView<DamagedItem> table) {
+                        ^
+  symbol:   class DamagedItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:1104: error: cannot find symbol
+    private TableColumn<RentItem, String> createRentItemActionsColumn(TableView<RentItem> table) {
+                                                                                ^
+  symbol:   class RentItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:1104: error: cannot find symbol
+    private TableColumn<RentItem, String> createRentItemActionsColumn(TableView<RentItem> table) {
+                        ^
+  symbol:   class RentItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:1475: error: cannot find symbol
+    private TableColumn<Rent, String> createRentActionsColumn(TableView<Rent> table) {
+                                                                        ^
+  symbol:   class Rent
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:1475: error: cannot find symbol
+    private TableColumn<Rent, String> createRentActionsColumn(TableView<Rent> table) {
+                        ^
+  symbol:   class Rent
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:1572: error: cannot find symbol
+    private void saveItem(InventoryItem item, InventoryItem existing, Object... formFields) {
+                          ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:1572: error: cannot find symbol
+    private void saveItem(InventoryItem item, InventoryItem existing, Object... formFields) {
+                                              ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:1666: error: cannot find symbol
+    private void saveDamagedItem(DamagedItem damaged, Object... additionalParams) {
+                                 ^
+  symbol:   class DamagedItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:1714: error: cannot find symbol
+    private void saveRentItem(RentItem rentItem, RentItem existing, Object... additionalParams) {
+                              ^
+  symbol:   class RentItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:1714: error: cannot find symbol
+    private void saveRentItem(RentItem rentItem, RentItem existing, Object... additionalParams) {
+                                                 ^
+  symbol:   class RentItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:1754: error: cannot find symbol
+    private void saveRent(Rent rent, Rent existing, Object... formFields) {
+                          ^
+  symbol:   class Rent
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:1754: error: cannot find symbol
+    private void saveRent(Rent rent, Rent existing, Object... formFields) {
+                                     ^
+  symbol:   class Rent
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:1832: error: cannot find symbol
+    private void deleteItem(InventoryItem item) {
+                            ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:1852: error: cannot find symbol
+    private void deleteDamagedItem(DamagedItem damaged) {
+                                   ^
+  symbol:   class DamagedItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:1874: error: cannot find symbol
+    private void deleteRentItem(RentItem rentItem) {
+                                ^
+  symbol:   class RentItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:1895: error: cannot find symbol
+    private void deleteRent(Rent rent) {
+                            ^
+  symbol:   class Rent
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:1918: error: cannot find symbol
+    private void showEditItemDialog(InventoryItem item) {
+                                    ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:2077: error: cannot find symbol
+    private void showEditDamagedItemDialog(DamagedItem damaged) {
+                                           ^
+  symbol:   class DamagedItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:2216: error: cannot find symbol
+    private void showEditRentItemDialog(RentItem rentItem) {
+                                        ^
+  symbol:   class RentItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:2361: error: cannot find symbol
+    private void showEditRentDialog(Rent rent) {
+                                    ^
+  symbol:   class Rent
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:48: error: cannot find symbol
+        this.itemDAO = new InventoryItemDAO();
+                           ^
+  symbol:   class InventoryItemDAO
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:49: error: cannot find symbol
+        this.damagedDAO = new DamagedItemDAO();
+                              ^
+  symbol:   class DamagedItemDAO
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:50: error: cannot find symbol
+        this.rentItemDAO = new RentItemDAO();
+                               ^
+  symbol:   class RentItemDAO
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:51: error: cannot find symbol
+        this.rentDAO = new RentDAO();
+                           ^
+  symbol:   class RentDAO
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:55: error: package com.mahal.util does not exist
+        com.mahal.util.EventBus.getInstance().subscribe("inventory_items",
+                      ^
+src\com\mahal\controller\inventory\InventoryController.java:57: error: package com.mahal.util does not exist
+        com.mahal.util.EventBus.getInstance().subscribe("damaged_items",
+                      ^
+src\com\mahal\controller\inventory\InventoryController.java:62: error: package com.mahal.util does not exist
+        com.mahal.util.EventBus.getInstance().subscribe("rent_items",
+                      ^
+src\com\mahal\controller\inventory\InventoryController.java:64: error: package com.mahal.util does not exist
+        com.mahal.util.EventBus.getInstance().subscribe("rents",
+                      ^
+src\com\mahal\controller\inventory\InventoryController.java:73: error: cannot find symbol
+        btn.setStyle(StyleHelper.getPillButtonStyle(active));
+                     ^
+  symbol:   variable StyleHelper
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:142: error: cannot find symbol
+        view.setStyle(StyleHelper.getCardStyle());
+                      ^
+  symbol:   variable StyleHelper
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:145: error: cannot find symbol
+        titleLabel.setStyle(StyleHelper.getTitleStyle());
+                            ^
+  symbol:   variable StyleHelper
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:150: error: cannot find symbol
+        switcher.setStyle(StyleHelper.getPillSwitcherContainerStyle());
+                          ^
+  symbol:   variable StyleHelper
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:232: error: cannot find symbol
+        addBtn.setStyle(StyleHelper.getActionPillButtonStyle());
+                        ^
+  symbol:   variable StyleHelper
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:237: error: cannot find symbol
+        StyleHelper.styleTextField(searchField);
+        ^
+  symbol:   variable StyleHelper
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:249: error: cannot find symbol
+        TableView<InventoryItem> table = new TableView<>();
+                  ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:250: error: cannot find symbol
+        TableStyler.applyModernStyling(table);
+        ^
+  symbol:   variable TableStyler
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:252: error: cannot find symbol
+        TableColumn<InventoryItem, String> nameCol = new TableColumn<>("NAME");
+                    ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:257: error: cannot find symbol
+        TableStyler.styleTableColumn(nameCol);
+        ^
+  symbol:   variable TableStyler
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:259: error: cannot find symbol
+        TableColumn<InventoryItem, String> skuCol = new TableColumn<>("SKU");
+                    ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:264: error: cannot find symbol
+        TableStyler.styleTableColumn(skuCol);
+        ^
+  symbol:   variable TableStyler
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:266: error: cannot find symbol
+        TableColumn<InventoryItem, String> qtyCol = new TableColumn<>("QUANTITY");
+                    ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:271: error: cannot find symbol
+        TableStyler.styleTableColumn(qtyCol);
+        ^
+  symbol:   variable TableStyler
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:273: error: cannot find symbol
+        TableColumn<InventoryItem, String> locationCol = new TableColumn<>("LOCATION");
+                    ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:278: error: cannot find symbol
+        TableStyler.styleTableColumn(locationCol);
+        ^
+  symbol:   variable TableStyler
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:280: error: cannot find symbol
+        TableColumn<InventoryItem, String> valueCol = new TableColumn<>("VALUE");
+                    ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:285: error: cannot find symbol
+        TableStyler.styleTableColumn(valueCol);
+        ^
+  symbol:   variable TableStyler
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:287: error: cannot find symbol
+        TableColumn<InventoryItem, String> actionsCol = new TableColumn<>("ACTIONS");
+                    ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:289: error: cannot find symbol
+        actionsCol.setCellFactory(param -> new TableCell<InventoryItem, String>() {
+                                                         ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:302: error: cannot find symbol
+                    InventoryItem item = getTableView().getItems().get(getIndex());
+                    ^
+  symbol: class InventoryItem
+src\com\mahal\controller\inventory\InventoryController.java:307: error: cannot find symbol
+                    InventoryItem item = getTableView().getItems().get(getIndex());
+                    ^
+  symbol: class InventoryItem
+src\com\mahal\controller\inventory\InventoryController.java:322: error: cannot find symbol
+        TableStyler.styleTableColumn(actionsCol);
+        ^
+  symbol:   variable TableStyler
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:330: error: cannot find symbol
+        itemList.addListener((javafx.collections.ListChangeListener<InventoryItem>) c -> {
+                                                                    ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:355: error: cannot find symbol
+        Label title = FormStyler.createFormLabel("Add Item");
+                      ^
+  symbol:   variable FormStyler
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:356: error: cannot find symbol
+        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + StyleHelper.TEXT_GRAY_900 + ";");
+                                                                                       ^
+  symbol:   variable StyleHelper
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:458: error: cannot find symbol
+            InventoryItem item = new InventoryItem();
+            ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:458: error: cannot find symbol
+            InventoryItem item = new InventoryItem();
+                                     ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:499: error: cannot find symbol
+                FormStyler.createCompactFormField("Item Name *", itemNameField),
+                ^
+  symbol:   variable FormStyler
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:500: error: cannot find symbol
+                FormStyler.createCompactFormField("SKU / Code", skuField),
+                ^
+  symbol:   variable FormStyler
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:501: error: cannot find symbol
+                FormStyler.createCompactFormField("Quantity", quantityField),
+                ^
+  symbol:   variable FormStyler
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:502: error: cannot find symbol
+                FormStyler.createCompactFormField("Location", locationField),
+                ^
+  symbol:   variable FormStyler
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:503: error: cannot find symbol
+                FormStyler.createCompactFormField("Purchase Date", purchaseDatePicker),
+                ^
+  symbol:   variable FormStyler
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:504: error: cannot find symbol
+                FormStyler.createCompactFormField("Supplier", supplierField),
+                ^
+  symbol:   variable FormStyler
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:505: error: cannot find symbol
+                FormStyler.createCompactFormField("Value", valueField),
+                ^
+  symbol:   variable FormStyler
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:506: error: cannot find symbol
+                FormStyler.createCompactFormField("Notes", notesField),
+                ^
+  symbol:   variable FormStyler
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:516: error: cannot find symbol
+        TableColumn<InventoryItem, String> actionsCol = new TableColumn<>("Actions");
+                    ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:517: error: cannot find symbol
+        actionsCol.setCellFactory(col -> new TableCell<InventoryItem, String>() {
+                                                       ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:522: error: cannot find symbol
+                editBtn.setStyle(StyleHelper.getEditButtonStyle());
+                                 ^
+  symbol: variable StyleHelper
+src\com\mahal\controller\inventory\InventoryController.java:523: error: cannot find symbol
+                editBtn.setOnMouseEntered(e -> editBtn.setStyle(StyleHelper.getEditButtonHoverStyle()));
+                                                                ^
+  symbol: variable StyleHelper
+src\com\mahal\controller\inventory\InventoryController.java:524: error: cannot find symbol
+                editBtn.setOnMouseExited(e -> editBtn.setStyle(StyleHelper.getEditButtonStyle()));
+                                                               ^
+  symbol: variable StyleHelper
+src\com\mahal\controller\inventory\InventoryController.java:526: error: cannot find symbol
+                delBtn.setStyle(StyleHelper.getDangerButtonStyle());
+                                ^
+  symbol: variable StyleHelper
+src\com\mahal\controller\inventory\InventoryController.java:527: error: cannot find symbol
+                delBtn.setOnMouseEntered(e -> delBtn.setStyle(StyleHelper.getDangerButtonHoverStyle()));
+                                                              ^
+  symbol: variable StyleHelper
+src\com\mahal\controller\inventory\InventoryController.java:528: error: cannot find symbol
+                delBtn.setOnMouseExited(e -> delBtn.setStyle(StyleHelper.getDangerButtonStyle()));
+                                                             ^
+  symbol: variable StyleHelper
+src\com\mahal\controller\inventory\InventoryController.java:531: error: cannot find symbol
+                    InventoryItem item = getTableView().getItems().get(getIndex());
+                    ^
+  symbol: class InventoryItem
+src\com\mahal\controller\inventory\InventoryController.java:536: error: cannot find symbol
+                    InventoryItem item = getTableView().getItems().get(getIndex());
+                    ^
+  symbol: class InventoryItem
+src\com\mahal\controller\inventory\InventoryController.java:554: error: cannot find symbol
+        TableStyler.styleTableColumn(actionsCol);
+        ^
+  symbol:   variable TableStyler
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:585: error: cannot find symbol
+        Label title = FormStyler.createFormLabel("Mark Damaged Item");
+                      ^
+  symbol:   variable FormStyler
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:586: error: cannot find symbol
+        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: " + StyleHelper.TEXT_GRAY_900 + ";");
+                                                                                       ^
+  symbol:   variable StyleHelper
+  location: class InventoryController
+src\com\mahal\controller\inventory\InventoryController.java:595: error: cannot find symbol
+        ComboBox<InventoryItem> itemCombo = new ComboBox<>();
+                 ^
+  symbol:   class InventoryItem
+  location: class InventoryController
+Note: src\com\mahal\controller\inventory\InventoryController.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+100 errors
+only showing the first 100 errors, of 262 total; use -Xmaxerrs if you would like to see more

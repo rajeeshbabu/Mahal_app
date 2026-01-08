@@ -1,0 +1,11 @@
+# Supabase Configuration
+# Replace the values below with your actual Supabase project details
+
+# Your Supabase project URL (found in your Supabase project settings)
+supabase.url=https://your-project-id.supabase.co
+
+# Your Supabase anon/public API key (found in your Supabase project API settings)
+supabase.key=your-supabase-anon-key-here
+
+
+

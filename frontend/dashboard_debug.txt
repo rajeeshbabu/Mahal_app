@@ -1,0 +1,756 @@
+
+--- Dashboard Rebuild: 2025-12-22T13:12:13.528711 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:13:09.364632700 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:13:09.419777400 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:13:09.478040500 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:13:09.513110600 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:13:09.552266900 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:13:09.739611200 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:13:09.817845600 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:13:09.889189300 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:13:09.920219 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:13:09.953567200 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:13:09.977902200 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:13:10.014007500 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:13:11.294609500 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:14:09.799952700 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:14:09.821337700 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:14:09.858353700 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:14:09.877866900 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:14:09.905795600 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:14:09.992959700 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:14:10.042153200 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:14:10.062428900 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:14:10.170041 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:14:10.201204300 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:14:10.240295 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:14:10.319215300 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:14:11.518866500 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:15:09.614468800 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:15:09.706723200 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:15:09.801592200 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:15:09.905202800 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:15:09.971283100 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:15:10.026173200 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:15:10.050893 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:15:10.070371800 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:15:10.090115200 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:15:10.119479100 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:15:10.137113300 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:15:10.206501100 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:15:11.207743300 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:16:05.219227200 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:16:10.303629100 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:16:10.335942800 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:16:10.373075400 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:16:10.391698600 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:16:10.406778 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:16:10.469831100 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:16:10.488760500 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:16:10.501142800 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:16:10.616572900 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:16:10.643303200 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:16:10.665821600 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:16:10.787870900 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
+
+--- Dashboard Rebuild: 2025-12-22T13:16:12.105710800 ---
+Range: 2025-12-01 to 2025-12-31
+allIncome size = 3
+Income ID=1, Date=null, Amount=10000.0, TypeID=1
+Income ID=2, Date=null, Amount=9000.0, TypeID=1
+Income ID=3, Date=null, Amount=1000000.0, TypeID=1
+incomeRange (date filtered) size = 0
+donationIncome (type filtered) size = 0
+allExpenses size = 3
+Expense ID=1, Date=null, Amount=20000.0
+Expense ID=2, Date=null, Amount=6000.0
+Expense ID=3, Date=null, Amount=40000.0
+expensesRange (date filtered) size = 0
