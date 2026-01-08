@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "module": "esnext",
+        "moduleResolution": "node",
+        "lib": [
+            "esnext",
+            "dom"
+        ],
+        "strict": true,
+        "baseUrl": ".",
+        "paths": {
+            "https://*": [
+                "C:/Users/revathy/.deno/deps/https/*"
+            ]
+        }
+    },
+    "include": [
+        "**/*.ts"
+    ]
+}

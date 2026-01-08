@@ -1,10 +1,8 @@
 package com.mahal.subscription.controller;
 
-import com.mahal.subscription.dto.CreateSubscriptionRequest;
-import com.mahal.subscription.dto.SubscriptionResponse;
 import com.mahal.subscription.dto.SubscriptionStatusResponse;
 import com.mahal.subscription.model.Subscription;
-import com.mahal.subscription.service.RazorpaySubscriptionService;
+
 import com.mahal.subscription.service.SubscriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +20,6 @@ public class SubscriptionController {
 
     @Autowired
     private SubscriptionService subscriptionService;
-
-    @Autowired
-    private RazorpaySubscriptionService razorpayService;
 
     /**
      * Check subscription status for the current user
@@ -83,32 +78,12 @@ public class SubscriptionController {
     }
 
     /**
-     * Create a new subscription (Monthly or Yearly)
-     * Returns Razorpay hosted checkout URL
+     * Obsolete: Create a new subscription
+     * This is now handled securely via Supabase Edge Functions.
      */
     @PostMapping("/create")
-    public ResponseEntity<SubscriptionResponse> createSubscription(
-            @RequestBody CreateSubscriptionRequest request,
-            Principal principal,
-            @RequestParam(required = false) String userId) {
-        // Priority: 1) userId query parameter, 2) Principal (if authenticated), 3)
-        // "test_user" fallback
-        String userIdentifier;
-        if (userId != null && !userId.isEmpty()) {
-            userIdentifier = userId;
-        } else if (principal != null) {
-            userIdentifier = principal.getName();
-        } else {
-            userIdentifier = "test_user";
-        }
-
-        // Validate plan duration
-        if (!request.getPlanDuration().equals("monthly") && !request.getPlanDuration().equals("yearly")) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        SubscriptionResponse response = razorpayService.createSubscription(userIdentifier, request.getPlanDuration());
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Map<String, String>> createSubscription() {
+        return ResponseEntity.status(410).body(Map.of("message", "Obsolete: Use Supabase Edge Function Proxy"));
     }
 
     /**

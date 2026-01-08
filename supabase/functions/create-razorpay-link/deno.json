@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "allowJs": true,
+        "lib": [
+            "deno.window",
+            "deno.ns",
+            "deno.unstable",
+            "esnext"
+        ],
+        "strict": true
+    }
+}

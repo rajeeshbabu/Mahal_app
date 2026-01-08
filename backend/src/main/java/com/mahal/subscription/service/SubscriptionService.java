@@ -3,7 +3,7 @@ package com.mahal.subscription.service;
 import com.mahal.subscription.dto.SubscriptionStatusResponse;
 import com.mahal.subscription.model.Subscription;
 import com.mahal.subscription.repository.SubscriptionRepository;
-import com.mahal.subscription.service.SubscriptionSyncHelper;
+
 import com.mahal.sync.SupabaseSyncService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,9 +21,6 @@ public class SubscriptionService {
 
     @Autowired(required = false)
     private SupabaseSyncService supabaseSyncService;
-
-    @Autowired
-    private RazorpaySubscriptionService razorpaySubscriptionService;
 
     /**
      * Get subscription status for a user
@@ -48,7 +45,6 @@ public class SubscriptionService {
             if (subscriptionOpt.isPresent()) {
                 Subscription subscription = subscriptionOpt.get();
                 String userId = subscription.getUserId(); // Valid internal user ID
-                boolean justSyncedFromSupabase = false;
 
                 // Bidirectional Sync (LWW based on timestamps + Status Override)
                 if (supabaseSyncService != null && supabaseSyncService.isConfigured()) {
@@ -114,7 +110,6 @@ public class SubscriptionService {
                                     if (!oldStatus.equalsIgnoreCase(subscription.getStatus())) {
                                         System.out.println("⬇️ [SYNC] Status updated from " + oldStatus + " to "
                                                 + subscription.getStatus());
-                                        justSyncedFromSupabase = true;
                                     }
                                     subscription.setUpdatedAt(remoteUpdated);
                                     subscription = subscriptionRepository.save(subscription);
@@ -127,9 +122,7 @@ public class SubscriptionService {
                                     System.out.println(
                                             "⬇️ [SYNC] Same timestamp but status mismatch. Preferring Remote (Admin override): "
                                                     + remoteSub.getStatus());
-                                    String oldStatus = subscription.getStatus();
                                     SubscriptionSyncHelper.jsonToSubscription(supabaseData, subscription);
-                                    justSyncedFromSupabase = true;
                                     subscription = subscriptionRepository.save(subscription);
                                 } else {
                                     System.out.println("↔️ [SYNC] Both are in sync (Time: " + localUpdated + ")");
@@ -522,91 +515,12 @@ public class SubscriptionService {
      * Sync subscription status from Razorpay API (fallback when webhook hasn't
      * fired)
      */
-    /**
-     * Sync subscription status from Razorpay API (fallback when webhook hasn't
-     * fired)
-     */
     private boolean syncSubscriptionStatusFromRazorpay(String razorpaySubscriptionId, Subscription subscription) {
-        try {
-            System.out
-                    .println("🔄 Attempting to sync subscription status from Razorpay for: " + razorpaySubscriptionId);
-
-            String status = "";
-            boolean isSuccessful = false;
-
-            // 1. Fetch info and determine success
-            if (razorpaySubscriptionId.startsWith("plink_")) {
-                // Handle Payment Link
-                System.out.println("ℹ️ ID is a Payment Link. Fetching from /payment_links endpoint...");
-                String response = razorpaySubscriptionService.makeRazorpayRequest("GET",
-                        "/payment_links/" + razorpaySubscriptionId, null);
-
-                org.json.JSONObject json = new org.json.JSONObject(response);
-                status = json.optString("status", "");
-                System.out.println("📋 Payment Link Status: " + status);
-
-                if ("paid".equalsIgnoreCase(status)) {
-                    isSuccessful = true;
-                }
-            } else {
-                // Handle Regular Subscription
-                System.out.println("ℹ️ ID is a Standard Subscription. Fetching from /subscriptions endpoint...");
-                String response = razorpaySubscriptionService.makeRazorpayRequest("GET",
-                        "/subscriptions/" + razorpaySubscriptionId, null);
-
-                org.json.JSONObject json = new org.json.JSONObject(response);
-                status = json.optString("status", "");
-                System.out.println("📋 Razorpay subscription status: " + status);
-
-                if ("active".equalsIgnoreCase(status) || "authenticated".equalsIgnoreCase(status) ||
-                        "charged".equalsIgnoreCase(status) || "completed".equalsIgnoreCase(status)) {
-                    isSuccessful = true;
-                }
-            }
-
-            System.out.println("🔍 Activation check: status=" + status + ", isSuccessful=" + isSuccessful);
-
-            if (isSuccessful) {
-                System.out.println("✅ Verification successful. Activating subscription...");
-
-                subscription.setStatus("active");
-                // CRITICAL: Reset Super Admin Status to 'activated' on new payment
-                subscription.setSuperadminStatus("activated");
-
-                if (subscription.getStartDate() == null) {
-                    subscription.setStartDate(com.mahal.subscription.service.SubscriptionSyncHelper.getNowUtc());
-                }
-
-                if (subscription.getEndDate() == null) {
-                    String planDuration = subscription.getPlanDuration();
-                    if ("monthly".equals(planDuration)) {
-                        subscription.setEndDate(
-                                com.mahal.subscription.service.SubscriptionSyncHelper.getNowUtc().plusMonths(1));
-                    } else {
-                        subscription.setEndDate(
-                                com.mahal.subscription.service.SubscriptionSyncHelper.getNowUtc().plusYears(1));
-                    }
-                }
-
-                subscription.setUpdatedAt(com.mahal.subscription.service.SubscriptionSyncHelper.getNowUtc());
-                subscription = subscriptionRepository.save(subscription);
-
-                // Reload to ensure we have the latest state
-                subscription = subscriptionRepository.findById(subscription.getId()).orElse(subscription);
-
-                System.out.println(
-                        "✅ Successfully updated subscription to active. End Date: " + subscription.getEndDate());
-
-                if (supabaseSyncService != null && supabaseSyncService.isConfigured()) {
-                    System.out.println("🔄 Pushing 'active' status to Supabase...");
-                    SubscriptionSyncHelper.syncSubscription(supabaseSyncService, subscription, "INSERT");
-                }
-                return true;
-            }
-        } catch (Exception e) {
-            System.err.println("❌ Error verification failed for " + razorpaySubscriptionId + ": " + e.getMessage());
-            // e.printStackTrace();
-        }
+        // Obsolete: Manual Razorpay sync from backend is disabled in favor of Supabase
+        // Edge Function proxy.
+        // Status is now synced via supabaseSyncService.
+        System.out.println(
+                "ℹ️ Skipping manual Razorpay sync for " + razorpaySubscriptionId + " (handled via Supabase Proxy)");
         return false;
     }
 

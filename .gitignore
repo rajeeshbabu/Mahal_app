@@ -20,5 +20,6 @@ website/.env.local
 website/.env
 .idea/
 .vscode/
+!.vscode/settings.json
 *.jar
 *.exe

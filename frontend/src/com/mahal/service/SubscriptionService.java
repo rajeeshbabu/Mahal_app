@@ -93,28 +93,44 @@ public class SubscriptionService {
      */
     public String createSubscription(String planDuration) {
         try {
-            // Get logged-in user to create subscription for them
+            // 1. Get current user info
             Long userId = getCurrentUserId();
-            String userEmail = getCurrentUserEmail();
-
-            String endpoint = "/subscriptions/create";
-            if (userId != null) {
-                endpoint += "?userId=" + userId;
-            } else if (userEmail != null && !userEmail.isEmpty()) {
-                endpoint += "?userId=" + java.net.URLEncoder.encode(userEmail, "UTF-8");
+            if (userId == null) {
+                throw new RuntimeException("No user logged in. Please log in to subscribe.");
             }
 
-            JSONObject request = new JSONObject();
-            request.put("planDuration", planDuration);
+            // 2. Fetch price needed for the Edge Function
+            Map<String, String> pricing = getPricing();
+            String priceStr = pricing.get(planDuration.toLowerCase());
+            if (priceStr == null) {
+                // Try fallback if map key is different
+                priceStr = pricing.get(planDuration);
+            }
 
-            ApiResponse response = apiService.post(endpoint, request);
+            // Extract numeric amount from "₹500" format
+            String amountRupees = "1"; // Default fallback
+            if (priceStr != null) {
+                amountRupees = priceStr.replaceAll("[^0-9]", "");
+            }
+
+            // 3. Call the secure Supabase Edge Function
+            JSONObject request = new JSONObject();
+            request.put("userId", String.valueOf(userId));
+            request.put("planDuration", planDuration.toLowerCase());
+            request.put("amountRupees", amountRupees);
+
+            System.out.println("🔄 Calling secure Edge Function for " + planDuration + " subscription...");
+            ApiResponse response = apiService.callSupabaseFunction("create-razorpay-link", request);
 
             if (!response.isSuccess()) {
-                throw new RuntimeException("Failed to create subscription: " + response.getBody());
+                System.err.println("Edge Function Error: " + response.getBody());
+                throw new RuntimeException(
+                        "Failed to create secure payment link. Please check your internet connection.");
             }
 
             JSONObject json = response.getJson();
-            return json.getString("checkoutUrl");
+            return json.getString("checkout_url");
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Error creating subscription: " + e.getMessage());

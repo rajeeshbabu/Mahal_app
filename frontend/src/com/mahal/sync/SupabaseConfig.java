@@ -92,6 +92,45 @@ public class SupabaseConfig {
     }
 
     /**
+     * Get Razorpay Key ID.
+     */
+    public String getRazorpayKeyId() {
+        return properties.getProperty("razorpay.key.id", "");
+    }
+
+    /**
+     * Set Razorpay Key ID.
+     */
+    public void setRazorpayKeyId(String keyId) {
+        properties.setProperty("razorpay.key.id", keyId);
+        saveConfig();
+    }
+
+    /**
+     * Get Razorpay Key Secret.
+     */
+    public String getRazorpayKeySecret() {
+        return properties.getProperty("razorpay.key.secret", "");
+    }
+
+    /**
+     * Set Razorpay Key Secret.
+     */
+    public void setRazorpayKeySecret(String secret) {
+        properties.setProperty("razorpay.key.secret", secret);
+        saveConfig();
+    }
+
+    /**
+     * Check if Razorpay is configured.
+     */
+    public boolean isRazorpayConfigured() {
+        String keyId = getRazorpayKeyId();
+        String secret = getRazorpayKeySecret();
+        return keyId != null && !keyId.isEmpty() && secret != null && !secret.isEmpty();
+    }
+
+    /**
      * Check if Supabase is configured.
      */
     public boolean isConfigured() {

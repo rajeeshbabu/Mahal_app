@@ -68,7 +68,7 @@ REM Define Variables
 set APP_NAME=MahalApp
 set MAIN_JAR=mahal-frontend-1.1.0.jar
 set MAIN_CLASS=com.mahal.MahalApplication
-set APP_VERSION=1.1.0
+set APP_VERSION=1.1.1
 set VENDOR="Mahal Team"
 
 REM Step 4a: Create App Image (for local use)

@@ -73,6 +73,66 @@ public class ApiService {
         return makeRequest("DELETE", endpoint, null);
     }
 
+    /**
+     * Call a Supabase Edge Function
+     */
+    public ApiResponse callSupabaseFunction(String functionName, JSONObject data) {
+        try {
+            // Get URL and Key from SupabaseConfig
+            com.mahal.sync.SupabaseConfig config = com.mahal.sync.SupabaseConfig.getInstance();
+            String supabaseUrl = config.getUrl();
+            String supabaseKey = config.getApiKey();
+
+            if (supabaseUrl == null || supabaseUrl.isEmpty() || supabaseKey == null || supabaseKey.isEmpty()) {
+                return new ApiResponse(400, "{\"error\":\"Supabase not configured\"}");
+            }
+
+            // Standard Supabase Edge Function URL format:
+            // https://[project-ref].supabase.co/functions/v1/[function-name]
+            String urlStr = supabaseUrl;
+            if (!urlStr.endsWith("/"))
+                urlStr += "/";
+            urlStr += "functions/v1/" + functionName;
+
+            URL url = java.net.URI.create(urlStr).toURL();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Authorization", "Bearer " + supabaseKey);
+            conn.setRequestProperty("apikey", supabaseKey);
+
+            if (data != null) {
+                conn.setDoOutput(true);
+                try (OutputStream os = conn.getOutputStream()) {
+                    byte[] input = data.toString().getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+                }
+            }
+
+            int responseCode = conn.getResponseCode();
+            StringBuilder response = new StringBuilder();
+
+            BufferedReader reader;
+            if (responseCode >= 200 && responseCode < 300) {
+                reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            } else {
+                reader = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+            }
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                response.append(line);
+            }
+            reader.close();
+
+            return new ApiResponse(responseCode, response.toString());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ApiResponse(500, "{\"error\":\"" + e.getMessage() + "\"}");
+        }
+    }
+
     private ApiResponse makeRequest(String method, String endpoint, JSONObject data) {
         try {
             URL url = java.net.URI.create(BASE_URL + endpoint).toURL();
