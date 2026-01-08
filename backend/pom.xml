@@ -14,7 +14,7 @@
 
     <groupId>com.mahal</groupId>
     <artifactId>mahal-backend</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <description>Spring Boot backend for Mahal Management System with Razorpay subscription integration</description>
 
     <properties>

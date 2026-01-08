@@ -16,9 +16,8 @@ public class MahalApplication extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-        try {
             // Try different possible paths for the icon
-            String[] iconPaths = {"/resources/app_icon.png", "/app_icon.png", "/resources/images/mahal_logo.png"};
+            String[] iconPaths = { "/resources/app_icon.png", "/app_icon.png", "/resources/images/mahal_logo.png" };
             for (String path : iconPaths) {
                 java.io.InputStream is = getClass().getResourceAsStream(path);
                 if (is != null) {
@@ -57,8 +56,19 @@ public class MahalApplication extends Application {
             try {
                 System.out.println("Starting Embedded Spring Boot Backend...");
                 com.mahal.MahalBackendApplication.main(new String[0]);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 e.printStackTrace();
+                Platform.runLater(() -> {
+                    javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                            javafx.scene.control.Alert.AlertType.ERROR);
+                    alert.setTitle("Backend Startup Error");
+                    alert.setHeaderText("Critical Error: Backend Failed to Start");
+                    alert.setContentText(
+                            "The application backend encountered a critical error and could not start.\n\nError: "
+                                    + e.getClass().getName() + ": " + e.getMessage());
+                    alert.showAndWait();
+                    System.exit(1);
+                });
             }
         }).start();
 
