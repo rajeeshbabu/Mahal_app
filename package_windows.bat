@@ -39,14 +39,21 @@ if %errorlevel% neq 0 (
 cd ..
 
 echo [3/4] Preparing Input Directory...
+REM Clear existing files to avoid Access Denied errors
+taskkill /F /IM MahalApp.exe /T >nul 2>&1
+taskkill /F /IM MahalApp-1.0.0.exe /T >nul 2>&1
+
 set INPUT_DIR=dist_input
 if exist "%INPUT_DIR%" rmdir /s /q "%INPUT_DIR%"
 mkdir "%INPUT_DIR%"
 
-REM Copy Dependencies and Main Jar
+if exist "output\MahalApp-1.0.0.exe" del /F /Q "output\MahalApp-1.0.0.exe"
+
+REM Copy Dependencies, Main Jar, and Icon
 copy "supabase.properties" "%INPUT_DIR%\"
 copy "frontend\target\libs\*.jar" "%INPUT_DIR%\"
 copy "frontend\target\mahal-frontend-1.0.0.jar" "%INPUT_DIR%\"
+copy "frontend\Image\icon.ico" "%INPUT_DIR%\"
 
 REM Create a default config file in valid location if needed
 REM But for jpackage, we might want to just let the user handle it.
@@ -60,8 +67,7 @@ set MAIN_CLASS=com.mahal.MahalApplication
 set APP_VERSION=1.0.0
 set VENDOR="Mahal Team"
 
-REM Note: win-console is useful for debugging (shows stdout). Change to win-dir-chooser or remove for production.
-REM Using --win-console for initial testing so we can see Spring Boot logs.
+REM Step 4a: Create App Image (for local use)
 jpackage ^
   --type app-image ^
   --input %INPUT_DIR% ^
@@ -71,11 +77,28 @@ jpackage ^
   --app-version %APP_VERSION% ^
   --vendor %VENDOR% ^
   --dest output ^
+  --icon %INPUT_DIR%\icon.ico ^
   --win-console
 
+REM Step 4b: Create Standalone EXE/MSI Installer for distribution
+REM Note: This requires WiX Toolset to be installed on the system
+echo Creating MSI Installer...
+jpackage ^
+  --type msi ^
+  --input %INPUT_DIR% ^
+  --name %APP_NAME% ^
+  --main-jar %MAIN_JAR% ^
+  --main-class %MAIN_CLASS% ^
+  --app-version %APP_VERSION% ^
+  --vendor %VENDOR% ^
+  --dest output ^
+  --icon %INPUT_DIR%\icon.ico ^
+  --win-shortcut ^
+  --win-menu ^
+  --win-dir-chooser
+
 if %errorlevel% neq 0 (
-    echo [ERROR] jpackage failed.
-    exit /b 1
+    echo [WARNING] MSI Installation failed. Ensure WiX Toolset is installed: https://wixtoolset.org/releases/
 )
 
 echo.
