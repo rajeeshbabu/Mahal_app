@@ -24,7 +24,7 @@ public class AboutController {
         Label titleLabel = new Label("Mahal Management System");
         titleLabel.setStyle("-fx-font-size: 32px; -fx-font-weight: bold;");
 
-        Label versionLabel = new Label("Version 1.1.0");
+        Label versionLabel = new Label("Version 1.0.0");
         versionLabel.setStyle("-fx-font-size: 16px;");
 
         Label descriptionLabel = new Label(
